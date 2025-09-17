@@ -281,8 +281,7 @@ conn: this,
 // Tesis estuvo aquí 🙀
                 let text = _args.join` `  
 command = (command || '').toLowerCase()  
-const gruposPermitidos = [
-  '120363402900241539@g.us','120363403908045502@g.us','120363402374296588@g.us','120363402051958678@g.us','120363420992965884@g.us', '120363404767596170@g.us',
+const gruposPermitidos = ['120363420992965884@g.us','120363404767596170@g.us'
 ];
 
 const comandosPermitidos = ['serbot', 'bots', 'kick', 'code', 's', 'delsession', 'on', 'off', 'tutosub'];
