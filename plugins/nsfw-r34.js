@@ -1,37 +1,76 @@
-import fetch from 'node-fetch';
-const handler = async (m, { conn, args, usedPrefix }) => {
-if (!args[0]) {
-if (!db.data.chats[m.chat].nsfw && m.isGroup) {
-    return m.reply('[❗] 𝐋𝐨𝐬 𝐜𝐨𝐦𝐚𝐧𝐝𝐨𝐬 +𝟏𝟖 𝐞𝐬𝐭𝐚́𝐧 𝐝𝐞𝐬𝐚𝐜𝐭𝐢𝐯𝐚𝐝𝐨𝐬 𝐞𝐧 𝐞𝐬𝐭𝐞 𝐠𝐫𝐮𝐩𝐨.\n> 𝐬𝐢 𝐞𝐬 𝐚𝐝𝐦𝐢𝐧 𝐲 𝐝𝐞𝐬𝐞𝐚 𝐚𝐜𝐭𝐢𝐯𝐚𝐫𝐥𝐨𝐬 𝐮𝐬𝐞 .enable nsfw');
+
+
+
+‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎import fetch from 'node-fetch'
+
+let handler = async (m, { conn, args, usedPrefix }) => {
+
+  if (m.isGroup && db?.data?.chats[m.chat] && !db.data.chats[m.chat].nsfw) {
+    return m.reply(`El contenido *NSFW* está desactivado en este grupo.\n> Un administrador puede activarlo con » *${usedPrefix}nsfw on*`)
+  }
+
+const anime = [
+  'vegeta',
+  'kirito',
+  'naruto',
+  'yuki',
+  'goku',
+  'luffy',
+  'tanjiro',
+  'nezuko',
+  'eren',
+  'mikasa',
+  'levi',
+  'gon']
+
+const random = anime[Math.floor(Math.random() * anime.length)]
+
+console.log(random)
+
+  if (!args[0]) {
+    return conn.reply(
+      m.chat,
+      ` Por favor, ingresa un tag para realizar la búsqueda.\n\nEjemplo: *${usedPrefix}r34 ${random}*`,
+      m
+    )
+  }
+
+  const tag = args.join(' ')
+
+
+  const USER_ID = '5267539'
+  const API_KEY = 'dc12e2cb36b1bab5e941e7024bd2ac35dcdc9285bc047a4c99921bbfbc8ce5320b7f874de7e7e9ac23781ff9414f2cea88cb2e2cda77bfc36975576dc0fede0a'
+
+  const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(tag)}&user_id=${USER_ID}&api_key=${API_KEY}`
+
+  try {
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Bot/1.0)' }
+    })
+
+    const data = await response.json()
+
+    if (!data || data.length === 0) {
+      return conn.reply(m.chat, `No hubo resultados para *${tag}*`, m, fake)
     }
-await conn.reply(m.chat, '🚩 Ingresa el nombre de la imágen que estas buscando', m, rcanal);
-return;
+
+    const randomIndex = Math.floor(Math.random() * data.length)
+    const randomImage = data[randomIndex]
+    const imageUrl = randomImage.file_url
+
+    await conn.sendMessage(
+      m.chat,
+      { image: { url: imageUrl }, caption: ` Resultados para » *${tag}*`, mentions: [m.sender] },
+      { quoted: m }
+    )
+  } catch (error) {
+    console.error(error)
+    await m.reply(`Ocurrió un error al buscar.`)
+  }
 }
-const use = args[0];
-const url = `https://rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${use}`;
-try {
-conn.reply(m.chat, wait, m, {
-contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, showAdAttribution: true,
-title: packname,
-body: botname,
-previewType: 0, thumbnail: icono,
-sourceUrl: canal }}})
-const response = await fetch(url);
-const data = await response.json();
-if (!data || data.length === 0) {
-await conn.reply(m.chat, `🚩 No hubo resultados para *${use}*`, m, rcanal);
-return;
-}
-const randomIndex = Math.floor(Math.random() * data.length);
-const randomImage = data[randomIndex];
-const urlimg = randomImage.file_url;
-await conn.sendFile(m.chat, urlimg, 'thumbnail.jpg', `*Resultados De:* ${use}`, m, null, rcanal)
-} catch (error) {
-console.error(error);
-await m.reply(`🚩 Ocurrió un error. ${error.message}`);
-}};
-handler.help = ['r34 <texto>'];
-handler.command = ['r34', 'rule34'];
-handler.tags = ['nsfw'];
-// handler.estrellas = 2;
-export default handler;
+
+handler.help = ['r34 <tag>', 'rule34 <tag>']
+handler.command = ['r34', 'rule34']
+handler.tags = ['nsfw']
+
+export default handler
