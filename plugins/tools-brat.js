@@ -1,19 +1,57 @@
-// API By WillZek 
-import { sticker } from '../lib/sticker.js'
 
-let handler = async(m, { conn, text, args, usedPrefix, command }) => {
+import { sticker} from '../lib/sticker.js';
 
-if (!text) return m.reply(`《★》Ingresa Un Texto Para Realizar Tu Sticker\n> *Ejemplo:* ${usedPrefix + command} ${botname}`);
-
-let username = conn.getName(m.sender);
-let stiker = await sticker(null,`https://star-void-api.vercel.app/api/brat?text=${text}`, text, username)
-
-conn.sendFile(m.chat, stiker, 'sticker.webp', '',m, true, { contextInfo: { 'forwardingScore': 200, 'isForwarded': false, externalAdReply:{ showAdAttribution: false, title: text, body: username, mediaType: 2, sourceUrl: redes, thumbnail: imagen1 }}}, { quoted: m })
+let handler = async (m, { conn, text, usedPrefix, command}) => {
+  // Validación de entrada
+  if (!text) {
+    return m.reply(
+      `╭─⬣「 *STICKER TEXTO* 」⬣
+│ ≡◦ 🧩 *Ingresa un texto para crear tu sticker.*
+│ ≡◦ ✏️ *Ejemplo:* ${usedPrefix + command} Hola mundo
+╰─⬣`
+);
 }
 
-handler.help = ['brat'];
-handler.tag = ['sticker'];
-handler.command = ['brat'];
-// handler.estrellas = 3;
+  try {
+    const username = conn.getName(m.sender);
+    const apiUrl = `https://star-void-api.vercel.app/api/brat?text=${encodeURIComponent(text)}`;
+    const stickerBuffer = await sticker(null, apiUrl, text, username);
+
+    await conn.sendFile(
+      m.chat,
+      stickerBuffer,
+      'brat.webp',
+      '',
+      m,
+      true,
+      {
+        contextInfo: {
+          forwardingScore: 200,
+          isForwarded: false,
+          externalAdReply: {
+            showAdAttribution: false,
+            title: `Sticker: ${text}`,
+            body: `Creado por ${username}`,
+            mediaType: 2,
+            sourceUrl: 'https://github.com/WillZek',
+            thumbnail: imagen1 // Asegúrate de que esta variable esté definida globalmente
+}
+}
+}
+);
+} catch (e) {
+    console.error(e);
+    return m.reply(
+      `╭─⬣「 *STICKER TEXTO* 」⬣
+│ ≡◦ ⚠️ *Ocurrió un error al generar el sticker.*
+│ ≡◦ Intenta nuevamente más tarde.
+╰─⬣`
+);
+}
+};
+
+handler.help = ['brat <texto>'];
+handler.tags = ['sticker'];
+handler.command = /^brat$/i;
 
 export default handler;
