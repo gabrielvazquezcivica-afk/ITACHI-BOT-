@@ -2,25 +2,22 @@
 import { sticker} from '../lib/sticker.js';
 
 let handler = async (m, { conn, text, usedPrefix, command}) => {
-  // Validación de entrada
+  // Validación de texto
   if (!text) {
     return m.reply(
-      `╭─⬣「 *STICKER TEXTO* 」⬣
-│ ≡◦ 🧩 *Ingresa un texto para crear tu sticker.*
-│ ≡◦ ✏️ *Ejemplo:* ${usedPrefix + command} Hola mundo
-╰─⬣`
+      `《★》Ingresa un texto para crear tu sticker\n> *Ejemplo:* ${usedPrefix + command} Hola mundo`
 );
 }
 
   try {
     const username = conn.getName(m.sender);
     const apiUrl = `https://star-void-api.vercel.app/api/brat?text=${encodeURIComponent(text)}`;
-    const stickerBuffer = await sticker(null, apiUrl, text, username);
+    const stiker = await sticker(null, apiUrl, text, username);
 
     await conn.sendFile(
       m.chat,
-      stickerBuffer,
-      'brat.webp',
+      stiker,
+      'sticker.webp',
       '',
       m,
       true,
@@ -33,8 +30,8 @@ let handler = async (m, { conn, text, usedPrefix, command}) => {
             title: `Sticker: ${text}`,
             body: `Creado por ${username}`,
             mediaType: 2,
-            sourceUrl: 'https://github.com/WillZek',
-            thumbnail: imagen1 // Asegúrate de que esta variable esté definida globalmente
+            sourceUrl: 'https://github.com/WillZek', // Puedes cambiar esto
+            thumbnail: 'https://i.imgur.com/JP52fdP.jpg' // Imagen de vista previa
 }
 }
 }
@@ -42,10 +39,7 @@ let handler = async (m, { conn, text, usedPrefix, command}) => {
 } catch (e) {
     console.error(e);
     return m.reply(
-      `╭─⬣「 *STICKER TEXTO* 」⬣
-│ ≡◦ ⚠️ *Ocurrió un error al generar el sticker.*
-│ ≡◦ Intenta nuevamente más tarde.
-╰─⬣`
+      `《★》Ocurrió un error al generar el sticker\n> Intenta nuevamente más tarde.`
 );
 }
 };
@@ -54,4 +48,4 @@ handler.help = ['brat <texto>'];
 handler.tags = ['sticker'];
 handler.command = /^brat$/i;
 
-export default handler;
+export default handler;,
