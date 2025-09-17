@@ -1,3 +1,4 @@
+
 import fetch from 'node-fetch';
 
 let handler = async (m, { conn, args, command, usedPrefix}) => {
@@ -15,7 +16,7 @@ let handler = async (m, { conn, args, command, usedPrefix}) => {
     const res = await fetch(`https://api.lolhuman.xyz/api/spotify?apikey=beta&url=${encodeURIComponent(url)}`);
     const json = await res.json();
 
-    if (!json.status ||!json.result?.link) {
+    if (!json.status ||!json.result) {
       return m.reply(`╭─⬣「 *SASUKE* 」⬣
 │ ≡◦ ❌ *No se encontró resultado para:* ${url}
 ╰─⬣`);
@@ -33,10 +34,10 @@ let handler = async (m, { conn, args, command, usedPrefix}) => {
 }, { quoted: m});
 
 } catch (e) {
-    console.error(e);
+    console.error('Error en Spotify:', e);
     return m.reply(`╭─⬣「 *SASUKE* 」⬣
 │ ≡◦ ⚠️ *Error al procesar la solicitud.*
-│ ≡◦ Intenta nuevamente más tarde.
+│ ≡◦ Detalles: ${e.message}
 ╰─⬣`);
 }
 };
