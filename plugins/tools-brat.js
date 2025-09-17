@@ -1,4 +1,3 @@
-
 import { sticker} from '../lib/sticker.js';
 
 let handler = async (m, { conn, text, usedPrefix, command}) => {
@@ -17,7 +16,7 @@ let handler = async (m, { conn, text, usedPrefix, command}) => {
     await conn.sendFile(
       m.chat,
       stiker,
-      'sticker.webp',
+      'brat.webp',
       '',
       m,
       true,
@@ -37,7 +36,7 @@ let handler = async (m, { conn, text, usedPrefix, command}) => {
 }
 );
 } catch (e) {
-    console.error(e);
+    console.error('Error al generar sticker:', e);
     return m.reply(
       `《★》Ocurrió un error al generar el sticker\n> Intenta nuevamente más tarde.`
 );
