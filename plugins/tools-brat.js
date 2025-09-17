@@ -48,4 +48,4 @@ handler.help = ['brat <texto>'];
 handler.tags = ['sticker'];
 handler.command = /^brat$/i;
 
-export default handler;,
+export default handler;
