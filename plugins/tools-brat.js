@@ -1,50 +1,21 @@
-import { sticker} from '../lib/sticker.js';
+import { sticker } from '../lib/sticker.js'
 
-let handler = async (m, { conn, text, usedPrefix, command}) => {
-  // Validación de texto
-  if (!text) {
-    return m.reply(
-      `《★》Ingresa un texto para crear tu sticker\n> *Ejemplo:* ${usedPrefix + command} Hola mundo`
-);
-}
+let handler = async(m, { conn, text, args, usedPrefix, command }) => {
 
-  try {
-    const username = conn.getName(m.sender);
-    const apiUrl = `https://star-void-api.vercel.app/api/brat?text=${encodeURIComponent(text)}`;
-    const stiker = await sticker(null, apiUrl, text, username);
+if (!text) return m.reply(`《★》Ingresa Un Texto Para Realizar Tu Sticker\n> *Ejemplo:* ${usedPrefix + command} ${botname}`);
 
-    await conn.sendFile(
-      m.chat,
-      stiker,
-      'brat.webp',
-      '',
-      m,
-      true,
-      {
-        contextInfo: {
-          forwardingScore: 200,
-          isForwarded: false,
-          externalAdReply: {
-            showAdAttribution: false,
-            title: `Sticker: ${text}`,
-            body: `Creado por ${username}`,
-            mediaType: 2,
-            sourceUrl: 'https://github.com/WillZek', // Puedes cambiar esto
-            thumbnail: 'https://i.imgur.com/JP52fdP.jpg' // Imagen de vista previa
-}
-}
-}
-);
+try {
+let username = conn.getName(m.sender);
+let stiker = await sticker(null,`https://star-void-api.vercel.app/api/brat?text=${text}`, text, username)
+conn.sendFile(m.chat, stiker, 'sticker.webp', '',m, true, { contextInfo: { 'forwardingScore': 200, 'isForwarded': false, externalAdReply:{ showAdAttribution: false, title: text, body: username, mediaType: 2, sourceUrl: redes, thumbnail: imagen1 }}}, { quoted: m })
+
 } catch (e) {
-    console.error('Error al generar sticker:', e);
-    return m.reply(
-      `《★》Ocurrió un error al generar el sticker\n> Intenta nuevamente más tarde.`
-);
-}
-};
+m.reply(`${e.message}`)
+}}
 
-handler.help = ['brat <texto>'];
-handler.tags = ['sticker'];
-handler.command = /^brat$/i;
+handler.help = ['brat'];
+handler.tag = ['sticker'];
+handler.command = ['brat'];
+handler.estrellas = 3;
 
 export default handler;
