@@ -71,7 +71,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      await sendAudio('https://qu.ax/sjtTL.opus');
+      await sendAudio('https://cdn.russellxz.click/df5d54ec.mp3');
 }
 
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
@@ -85,7 +85,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      await sendAudio('https://qu.ax/LhbNi.opus');
+      await sendAudio('https://cdn.russellxz.click/5c471e35.mp3');
 }
 
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
@@ -99,7 +99,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      await sendAudio('https://qu.ax/LhbNi.opus');
+      await sendAudio('https://cdn.russellxz.click/5c471e35.mp3');
 }
 } catch (error) {
     console.error('❌ Error general en la función de bienvenida/despedida/expulsión:', error);
