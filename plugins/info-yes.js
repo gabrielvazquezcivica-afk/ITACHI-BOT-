@@ -146,4 +146,6 @@ const endTime = ((Date.now() - startTime) / 1000).toFixed(1);
 }
 };
 
+handler.command = ['f2'];
+
 export default handler;
