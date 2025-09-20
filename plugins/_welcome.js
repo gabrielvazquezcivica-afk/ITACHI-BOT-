@@ -1,4 +1,3 @@
-
 import { WAMessageStubType} from '@whiskeysockets/baileys';
 import fetch from 'node-fetch';
 
@@ -48,6 +47,19 @@ export async function before(m, { conn, groupMetadata}) {
 
     const { customWelcome, customBye, customKick} = chat;
 
+    const sendAudio = async (url) => {
+      try {
+        const audioBuffer = await fetch(url).then(res => res.buffer());
+        await conn.sendMessage(m.chat, {
+          audio: audioBuffer,
+          mimetype: 'audio/ogg; codecs=opus',
+          ptt: false
+}, { quoted: fkontak});
+} catch (err) {
+        console.error('❌ Error al enviar el audio:', err);
+}
+};
+
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
       const welcomeText = customWelcome
 ? customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@desc/gi, groupDesc)
@@ -59,15 +71,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      try {
-        await conn.sendMessage(m.chat, {
-          audio: { url: 'https://qu.ax/sjtTL.opus'},
-          mimetype: 'audio/ogg; codecs=opus',
-          ptt: false
-}, { quoted: fkontak});
-} catch (err) {
-        console.error('❌ Error al enviar el audio de bienvenida:', err);
-}
+      await sendAudio('https://qu.ax/sjtTL.opus');
 }
 
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
@@ -81,15 +85,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      try {
-        await conn.sendMessage(m.chat, {
-          audio: { url: 'https://qu.ax/LhbNi.opus'},
-          mimetype: 'audio/ogg; codecs=opus',
-          ptt: false
-}, { quoted: fkontak});
-} catch (err) {
-        console.error('❌ Error al enviar el audio de despedida:', err);
-}
+      await sendAudio('https://qu.ax/LhbNi.opus');
 }
 
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
@@ -103,15 +99,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      try {
-        await conn.sendMessage(m.chat, {
-          audio: { url: 'https://qu.ax/LhbNi.opus'},
-          mimetype: 'audio/ogg; codecs=opus',
-          ptt: false
-}, { quoted: fkontak});
-} catch (err) {
-        console.error('❌ Error al enviar el audio de expulsión:', err);
-}
+      await sendAudio('https://qu.ax/LhbNi.opus');
 }
 } catch (error) {
     console.error('❌ Error general en la función de bienvenida/despedida/expulsión:', error);
