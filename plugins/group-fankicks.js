@@ -57,6 +57,6 @@ const fankickHandler = async (msg, { conn}) => {
 }, { quoted: msg});
 };
 
-handler.command = ["fankick"];
+fankickHandler.command = ["fankick"];
 
 export default fankickHandler;
