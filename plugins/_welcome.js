@@ -71,7 +71,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      await sendAudio('https://cdn.russellxz.click/df5d54ec.mp3');
+      await sendAudio('https://cdn.russellxz.click/eeb468ed.mp3');
 }
 
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
