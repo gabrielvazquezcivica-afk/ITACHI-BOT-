@@ -59,4 +59,4 @@ const fankickHandler = async (msg, { conn}) => {
 
 handler.command = ["fankick"];
 
-export default Handler;
+export default fankickHandler;
