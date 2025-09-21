@@ -1,108 +1,120 @@
-/*
-- Ã°Å¸â€™â„¢ Seticono por WillZek >> https://github.com/WillZek
-- Ã°Å¸ÂªÂ CDN SUNFLARE por WillZek y SunFlare Team
-- Ã°Å¸â€œÂ CDN RUSSELLXZ de Russel.xyz
-*/
+import fs from 'fs';
+import path from 'path';
+import fetch from 'node-fetch';
+import crypto from 'crypto';
+import { FormData, Blob} from 'formdata-node';
+import { fileTypeFromBuffer} from 'file-type';
 
-importar fs desde 'fs';
-importar ruta desde 'ruta';
-importar fetch desde "node-fetch";
-importar cripto desde "cripto";
-importar {FormData, Blob} desde "formdata-nodo";
-importar { fileTypeFromBuffer } de "tipo-de-archivo";
+const emoji = '✅';
+const emoji2 = '✅';
 
-emoji constante = 'Ã¢Å“â€¦'
-constante emoji2 = 'Ã¢Å“â€¦'
-
-deje que el controlador = async (m, { conexión, argumentos, prefijoUsado, comando }) => {
-
-intentar {
-constante tipo = args[0];
-if (!['1', '2'].includes(tipo)) return conn.reply(m.chat, `Usa: *${usedPrefix+ command} 1* o *.seticono 2* respondiendo a una imagen.`, m, fake);
-
-si (!m.quoted || !/imagen/.prueba(m.quoted.tipomime)) {
-return m.reply(`Responde a una imagen con *${usedPrefix + command} ${tipo}* para actualizar el icono.`);
+const handler = async (m, { conn, args, usedPrefix, command}) => {
+  try {
+    const type = args[0];
+    if (!['1', '2'].includes(type)) {
+      return conn.reply(
+        m.chat,
+        `Use: *${usedPrefix + command} 1* or *.seticon 2* by replying to an image.`,
+        m
+);
 }
 
-const media = await m.quoted.download();
-constante tipo de archivo = await fileTypeFromBuffer(media);
-
-si (!tipo de archivo || !tipo de archivo.mime.startsWith('image/')) {
-return m.reply(`El archivo enviado no es una imagen válida.`);
+    if (!m.quoted ||!/image/.test(m.quoted.mimetype)) {
+      return m.reply(
+        `Reply to an image with *${usedPrefix + command} ${type}* to update the icon.`
+);
 }
 
-deje url;
-intentar {
-const sunflare = await uploadToSunflare(media);
-url = llamarada solar.url;
-} captura (e) {
-const russell = await uploadToRussellXZ(media);
-url = russell.url;
+    const media = await m.quoted.download();
+    const fileType = await fileTypeFromBuffer(media);
+
+    if (!fileType ||!fileType.mime.startsWith('image/')) {
+      return m.reply(`The file sent is not a valid image.`);
 }
 
-deje que botData = global.db.data.settings[conn.usuario.jid] || {};
-si (tipo === '1') {
-botData.icon1 = url;
-} demás {
-botData.icon2 = url;
+    let url;
+    try {
+      const sunflare = await uploadToSunflare(media);
+      url = sunflare.url;
+} catch (e) {
+      const russell = await uploadToRussellXZ(media);
+      url = russell.url;
 }
-    global.db.data.settings[conn.usuario.jid] = botData;
 
-await conn.sendFile(m.chat, media, 'icon.jpg', `${emoji} Icono ${tipo}.`, m);
+    let botData = global.db.data.settings[conn.user.jid] || {};
+    if (type === '1') {
+      botData.icon1 = url;
+} else {
+      botData.icon2 = url;
+}
+    global.db.data.settings[conn.user.jid] = botData;
 
-} captura (e) {
-m.reply(`Ã°Å¸ÂªÂ Error: ${e.message}`);
-}}
+    await conn.sendFile(m.chat, media, 'icon.jpg', `${emoji} Icon ${type}.`, m);
+} catch (e) {
+    m.reply(`❌ Error: ${e.message}`);
+}
+};
 
-handler.help = ['seticono <1|2>'];
-handler.tags = ['herramientas'];
-manejador.comando = /^seticono$/i;
-manejador.rowner = falso;
+handler.help = ['seticon <1|2>'];
+handler.tags = ['tools'];
+handler.command = /^seticon$/i;
+handler.rowner = false;
 
-controlador de exportación predeterminado;
+export default handler;
 
-función asíncrona uploadToSunflare(buffer) {
-const { ext, mime } = await fileTypeFromBuffer(buffer) || { ext: 'bin', mime: 'application/octet-stream' };
-constante blob = nuevo Blob([buffer], { tipo: mime });
-constante randomName = crypto.randomBytes(5).toString('hex') + '.' + ext;
+// Upload to Sunflare
+async function uploadToSunflare(buffer) {
+  const { ext, mime} = (await fileTypeFromBuffer(buffer)) || {
+    ext: 'bin',
+    mime: 'application/octet-stream'
+};
+  const blob = new Blob([buffer], { type: mime});
+  const randomName = crypto.randomBytes(5).toString('hex') + '.' + ext;
 
-deje que la carpeta = 'archivos';
-si (mime.startsWith('image/')) carpeta = 'imágenes';
+  let folder = 'files';
+  if (mime.startsWith('image/')) folder = 'images';
 
-constante arrayBuffer = await blob.arrayBuffer();
-constante base64Content = Buffer.from(arrayBuffer).toString('base64');
+  const arrayBuffer = await blob.arrayBuffer();
+  const base64Content = Buffer.from(arrayBuffer).toString('base64');
 
-constante resp = await fetch('https://cdn-sunflareteam.vercel.app/api/upload', {
-método: 'POST',
-encabezados: { 'Content-Type': 'application/json' },
-cuerpo: JSON.stringify({
-carpeta,
-nombre de archivo: randomName,
-Contenido base64
+  const resp = await fetch('https://cdn-sunflareteam.vercel.app/api/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      folder,
+      filename: randomName,
+      base64Content
 })
 });
 
-constante resultado = esperar resp.json();
+  const result = await resp.json();
 
-si (resp.ok && resultado?.url) {
-devolver { url: resultado.url, nombre: randomName };
-} demás {
-lanzar nuevo Error(resultado?.error || 'Error cdn.sunflare');
-}}
+  if (resp.ok && result?.url) {
+    return { url: result.url, name: randomName};
+} else {
+    throw new Error(result?.error || 'Error uploading to cdn.sunflare');
+}
+}
 
-función asíncrona uploadToRussellXZ(buffer) {
-constante formulario = nuevo FormData();
-form.set("archivo", nuevo Blob([buffer], { tipo: 'imagen/jpeg' }), "imagen.jpg");
+// Upload to RussellXZ
+async function uploadToRussellXZ(buffer) {
+  const form = new FormData();
+  form.set(
+    'file',
+    new Blob([buffer], { type: 'image/jpeg'}),
+    'image.jpg'
+);
 
-const resp = await fetch("https://cdn.russellxz.click/upload.php", {
-método: "POST",
-cuerpo: forma
+  const resp = await fetch('https://cdn.russellxz.click/upload.php', {
+    method: 'POST',
+    body: form
 });
 
-constante resultado = esperar resp.json();
+  const result = await resp.json();
 
-si (resp.ok && resultado?.url) {
-devolver { url: resultado.url };
-} demás {
-lanzar nuevo Error(resultado?.error || 'Error cdn.russellxz');
-}}
+  if (resp.ok && result?.url) {
+    return { url: result.url};
+} else {
+    throw new Error(result?.error || 'Error uploading to cdn.russellxz');
+}
+}
