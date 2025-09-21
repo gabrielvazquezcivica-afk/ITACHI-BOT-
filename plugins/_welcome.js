@@ -44,10 +44,24 @@ export async function before(m, { conn, groupMetadata}) {
     const groupName = groupMetadata.subject;
     const groupDesc = groupMetadata.desc || '📜 Sin descripción disponible';
 
-    // Nuevo diseño personalizado
-    const imgBuffer = await fetch(
-      'https://canvas-8zhi.onrender.com/api/welcome?title=Bienvenido&desc=Al%20grupo&profile=https://i.postimg.cc/GtTBLVH0/1757995590948.jpg&background=https://qu.ax/RziWb.jpg'
+    let imgBuffer;
+
+    // Imagen personalizada para bienvenida
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
+      imgBuffer = await fetch(
+        'https://canvas-8zhi.onrender.com/api/welcome?title=Bienvenido&desc=al%20grupo%20Sasuke%20Bot&background=https://qu.ax/gcBQF.jpg'
 ).then(res => res.buffer());
+}
+
+    // Imagen personalizada para salida o expulsión
+    if (
+      m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE ||
+      m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE
+) {
+      imgBuffer = await fetch(
+        'https://canvas-8zhi.onrender.com/api/welcome?title=Te%20extrañaremos%20pendejo%20🖕🏻😂&desc=&background=https://qu.ax/gcBQF.jpg'
+).then(res => res.buffer());
+}
 
     const { customWelcome, customBye, customKick} = chat;
 
@@ -81,7 +95,7 @@ export async function before(m, { conn, groupMetadata}) {
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
       const goodbyeText = customBye
 ? customBye.replace(/@user/gi, user).replace(/@group/gi, groupName)
-: `🚶‍♂️ *¡Adiós ${user}!* 😔\n\nGracias por haber formado parte de *${groupName}*. ¡Vuelve cuando quieras!`;
+: `😂 *Te extrañaremos pendejo* 🖕🏻\n\nGracias por haber formado parte de *${groupName}*`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
@@ -95,7 +109,7 @@ export async function before(m, { conn, groupMetadata}) {
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
       const kickText = customKick
 ? customKick.replace(/@user/gi, user).replace(/@group/gi, groupName)
-: `🚨 *${user} ha sido expulsado del grupo* 🚨\n\nMantengamos un ambiente respetuoso en *${groupName}*`;
+: `😂 *Te extrañaremos pendejo* 🖕🏻\n\n*${user}* ha sido expulsado de *${groupName}*`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
