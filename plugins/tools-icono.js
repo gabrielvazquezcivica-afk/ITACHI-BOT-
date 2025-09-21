@@ -14,7 +14,7 @@ const handler = async (m, { conn, args, usedPrefix, command}) => {
     if (!['1', '2'].includes(type)) {
       return conn.reply(
         m.chat,
-        `Use: *${usedPrefix + command} 1* or *.seticon 2* by replying to an image.`,
+        `Use: *${usedPrefix + command} 1* or *.seticon 2* responda con .seticono 2.`,
         m
 );
 }
