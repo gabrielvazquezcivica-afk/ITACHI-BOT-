@@ -17,8 +17,9 @@ export async function before(m, { conn, isAdmin, isBotAdmin}) {
     if (!isBotAdmin) {
       await conn.reply(
         m.chat,
-        `⚠️ Link detected, but I need admin rights to take action.`,
-        m
+        `⚠️ Enlace detectado, pero necesito ser administrador para tomar acción.`,
+        m,
+        { mentions: [m.sender]}
 );
       return true;
 }
@@ -35,7 +36,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin}) {
     // Notificar y expulsar al usuario
     await conn.reply(
       m.chat,
-      `⚠️ *Link externo detectado*\n\n*@${m.sender.split('@')[0]}* ha sido expulsado por compartir enlaces externos.`,
+      `⚠️ *Enlace externo detectado*\n\n*@${m.sender.split('@')[0]}* ha sido eliminado por compartir enlaces externos.`,
       m,
       { mentions: [m.sender]}
 );
