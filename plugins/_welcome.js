@@ -109,7 +109,7 @@ export async function before(m, { conn, groupMetadata}) {
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
       const kickText = customKick
 ? customKick.replace(/@user/gi, user).replace(/@group/gi, groupName)
-: `😂 *Te extrañaremos pendejo* 🖕🏻\n\n*${user}* ha sido expulsado de *${groupName}*`;
+: `😂 *Te extrañaremos pendejo* \n\n*${user}* ha sido expulsado de *${groupName}*`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
