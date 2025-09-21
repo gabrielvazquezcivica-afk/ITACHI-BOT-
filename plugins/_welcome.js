@@ -104,7 +104,7 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      await sendAudio('https://cdn.russellxz.click/5c471e35.mp3');
+      await sendAudio('https://cdn.russellxz.click/42514214.mp3');
 }
 if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
       const kickText = customKick
