@@ -44,9 +44,9 @@ export async function before(m, { conn, groupMetadata}) {
     const groupName = groupMetadata.subject;
     const groupDesc = groupMetadata.desc || '📜 Sin descripción disponible';
 
-    // Nuevo diseño de bienvenida
+    // Nuevo diseño personalizado
     const imgBuffer = await fetch(
-      'https://canvas-8zhi.onrender.com/api/welcome?title=Bienvenido&desc=Al%20grupo&profile=https://i.postimg.cc/GtTBLVH0/1757995590948.jpg&background=https://i.postimg.cc/BQM6WJh8/1757995747013.jpg'
+      'https://canvas-8zhi.onrender.com/api/welcome?title=Bienvenido&desc=Al%20grupo&profile=https://i.postimg.cc/GtTBLVH0/1757995590948.jpg&background=https://qu.ax/RziWb.jpg'
 ).then(res => res.buffer());
 
     const { customWelcome, customBye, customKick} = chat;
@@ -106,6 +106,6 @@ export async function before(m, { conn, groupMetadata}) {
       await sendAudio('https://cdn.russellxz.click/5c471e35.mp3');
 }
 } catch (error) {
-console.error('❌ Error general en la función de bienvenida/despedida/expulsión:', error);
+    console.error('❌ Error general en la función de bienvenida/despedida/expulsión:', error);
 }
 }
