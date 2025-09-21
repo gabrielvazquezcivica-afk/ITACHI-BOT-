@@ -55,9 +55,9 @@ const handler = async (m, { conn, args, usedPrefix, command}) => {
 }
 };
 
-handler.help = ['seticon <1|2>'];
+handler.help = ['seticono <1|2>'];
 handler.tags = ['tools'];
-handler.command = /^seticon$/i;
+handler.command = /^seticono$/i;
 handler.rowner = false;
 
 export default handler;
