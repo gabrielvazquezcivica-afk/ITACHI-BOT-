@@ -1,3 +1,4 @@
+
 import { WAMessageStubType} from '@whiskeysockets/baileys';
 import fetch from 'node-fetch';
 
@@ -89,13 +90,13 @@ export async function before(m, { conn, groupMetadata}) {
         mentions: [userJid]
 }, { quoted: fkontak});
 
-      await sendAudio('https://cdn.russellxz.click/eeb468ed.mp3');
+      await sendAudio('https://cdn.russellxz.click/42514214.mp3');
 }
 
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
       const goodbyeText = customBye
 ? customBye.replace(/@user/gi, user).replace(/@group/gi, groupName)
-: `😂 *Te extrañaremos pendejo* \n\nGracias por haber formado parte de *${groupName}*`;
+: `😂 *Te extrañaremos pendejo* 🖕🏻\n\nGracias por haber formado parte de *${groupName}*`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
@@ -105,11 +106,10 @@ export async function before(m, { conn, groupMetadata}) {
 
       await sendAudio('https://cdn.russellxz.click/5c471e35.mp3');
 }
-
-    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
+if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
       const kickText = customKick
 ? customKick.replace(/@user/gi, user).replace(/@group/gi, groupName)
-: `😂 *Te extrañaremos pendejo* \n\n*${user}* ha sido expulsado de *${groupName}*`;
+: `😂 *Te extrañaremos pendejo* 🖕🏻\n\n*${user}* ha sido expulsado de *${groupName}*`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
