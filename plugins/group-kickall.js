@@ -50,6 +50,5 @@ handler.help = ['kickall confirmar'];
 handler.tags = ['grupo'];
 handler.command = ['kickall', 'eliminaratodos', 'sacaratodos'];
 handler.group = true;
-handler.register = true;
 
 export default handler;
