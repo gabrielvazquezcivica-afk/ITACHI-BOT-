@@ -1,25 +1,10 @@
 
-const fkontak = {
-  key: {
-    participants: '0@s.whatsapp.net',
-    remoteJid: 'status@broadcast',
-    fromMe: false,
-    id: 'SasukeBot'
-},
-  message: {
-    contactMessage: {
-      displayName: 'Sasuke Bot 👑 El Rey',
-      vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:Sasuke Bot\nORG:Sasuke Empire\nTITLE:El Rey\nTEL;type=CELL;type=VOICE;waid=1234567890:+1 234 567 890\nEND:VCARD`
-}
-}
-}
-
 var handler = async (m, { conn, participants, usedPrefix, command}) => {
   let mentionedJid = await m.mentionedJid
   let user = mentionedJid?.[0] || (m.quoted && await m.quoted.sender) || null
 
   if (!user) {
-    return conn.sendMessage(m.chat, { text: `🌸 Debes mencionar a un usuario para expulsarlo del grupo.`}, { quoted: fkontak})
+    return conn.reply(m.chat, `🌸 Debes mencionar a un usuario para expulsarlo del grupo.`, m)
 }
 
   try {
@@ -29,25 +14,22 @@ var handler = async (m, { conn, participants, usedPrefix, command}) => {
 
     // Validaciones
     if (user === conn.user.jid) {
-      return conn.sendMessage(m.chat, { text: `🤖 No puedo eliminar al bot del grupo.`}, { quoted: fkontak})
+      return conn.reply(m.chat, `🤖 No puedo eliminar al bot del grupo.`, m)
 }
     if (user === ownerGroup) {
-      return conn.sendMessage(m.chat, { text: `👑 No puedo eliminar al propietario del grupo.`}, { quoted: fkontak})
+      return conn.reply(m.chat, `👑 No puedo eliminar al propietario del grupo.`, m)
 }
     if (user === ownerBot) {
-      return conn.sendMessage(m.chat, { text: `🛡️ No puedo eliminar al propietario del bot.`}, { quoted: fkontak})
+      return conn.reply(m.chat, `🛡️ No puedo eliminar al propietario del bot.`, m)
 }
 
     // Expulsar usuario
     await conn.groupParticipantsUpdate(m.chat, [user], 'remove')
-    conn.sendMessage(m.chat, { text: `✅ Usuario eliminado con éxito por Sasuke Bot 👑.`}, { quoted: fkontak})
 } catch (e) {
-    conn.sendMessage(
+    conn.reply(
       m.chat,
-      {
-        text: `⚠️ Ocurrió un error.\nUsa *${usedPrefix}report* para informarlo.\n\n📝 ${e.message}`
-},
-      { quoted: fkontak}
+      `⚠️ Ocurrió un error.\nUsa *${usedPrefix}report* para informarlo.\n\n📝 ${e.message}`,
+      m
 )
 }
 }
