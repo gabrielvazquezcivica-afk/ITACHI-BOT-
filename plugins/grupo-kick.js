@@ -1,79 +1,62 @@
-let handler = async (m, { conn, participants, isBotAdmin, isAdmin, args }) => {
-  if (!m.isGroup) {
-    return m.reply('❗ *Este comando solo funciona en grupos.*');
-  }
-  if (!isAdmin) {
-    return m.reply('🚫 *Solo los admins pueden usar este comando, fiera.*');
-  }
-  if (!isBotAdmin) {
-    return m.reply('😥 *No puedo eliminar a nadie si no soy admin.*');
-  }
 
-  let users = [];
+const fkontak = {
+  key: {
+    participants: '0@s.whatsapp.net',
+    remoteJid: 'status@broadcast',
+    fromMe: false,
+    id: 'SasukeBot'
+},
+  message: {
+    contactMessage: {
+      displayName: 'Sasuke Bot 👑 El Rey',
+      vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:Sasuke Bot\nORG:Sasuke Empire\nTITLE:El Rey\nTEL;type=CELL;type=VOICE;waid=1234567890:+1 234 567 890\nEND:VCARD`
+}
+}
+}
 
-  if (m.mentionedJid?.length) {
-    users = m.mentionedJid;
-  } else if (m.quoted?.sender) {
-    users = [m.quoted.sender];
-  } else if (args[0]) {
-    let jid = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-    users = [jid];
-  }
+var handler = async (m, { conn, participants, usedPrefix, command}) => {
+  let mentionedJid = await m.mentionedJid
+  let user = mentionedJid?.[0] || (m.quoted && await m.quoted.sender) || null
 
-  if (!users.length) {
-    return m.reply('👀 *Etiqueta, responde al mensaje o escribe el número de quien quieras eliminar, no adivino...*');
-  }
+  if (!user) {
+    return conn.sendMessage(m.chat, { text: `🌸 Debes mencionar a un usuario para expulsarlo del grupo.`}, { quoted: fkontak})
+}
 
-  let successfullyRemoved = [];
-  let failedToRemove = [];
+  try {
+    const groupInfo = await conn.groupMetadata(m.chat)
+    const ownerGroup = groupInfo.owner || `${m.chat.split`-`[0]}@s.whatsapp.net`
+    const ownerBot = `${global.owner[0][0]}@s.whatsapp.net`
 
-  for (let user of users) {
+    // Validaciones
     if (user === conn.user.jid) {
-      m.reply(`😅 *¿Quieres que me elimine a mí mismo? Eso no se puede.*`);
-      continue;
-    }
+      return conn.sendMessage(m.chat, { text: `🤖 No puedo eliminar al bot del grupo.`}, { quoted: fkontak})
+}
+    if (user === ownerGroup) {
+      return conn.sendMessage(m.chat, { text: `👑 No puedo eliminar al propietario del grupo.`}, { quoted: fkontak})
+}
+    if (user === ownerBot) {
+      return conn.sendMessage(m.chat, { text: `🛡️ No puedo eliminar al propietario del bot.`}, { quoted: fkontak})
+}
 
-    const participantExists = participants.some(p => p.id === user);
-    if (!participantExists) {
-      m.reply(`🤔 *No encontré a @${user.split('@')[0]} en este grupo, ¿estás seguro?*`, null, {
-        mentions: [user],
-      });
-      continue;
-    }
-
-    try {
-      await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
-      successfullyRemoved.push(user);
-    } catch (e) {
-      console.error(`Error al eliminar a ${user}:`, e);
-      failedToRemove.push(user);
-    }
-  }
-
-  if (successfullyRemoved.length > 0) {
-    let removedList = successfullyRemoved.map(user => `@${user.split('@')[0]}`).join(', ');
-
-    await m.reply(
-      `👢 *${removedList} fue enviado(s) a volar del grupo...*\n\n✨ _Desarrollado por Barboza🌀_`,
+    // Expulsar usuario
+    await conn.groupParticipantsUpdate(m.chat, [user], 'remove')
+    conn.sendMessage(m.chat, { text: `✅ Usuario eliminado con éxito por Sasuke Bot 👑.`}, { quoted: fkontak})
+} catch (e) {
+    conn.sendMessage(
       m.chat,
       {
-        contextInfo: {
-          mentionedJid: successfullyRemoved
-        }
-      }
-    );
-    m.react('✅');
-  } else if (failedToRemove.length > 0) {
-    m.reply('❌ *Hubo un problema al intentar eliminar a los usuarios. Quizás no tienen permiso o hubo un error en el servidor.*');
-    m.react('❌');
-  }
-};
+        text: `⚠️ Ocurrió un error.\nUsa *${usedPrefix}report* para informarlo.\n\n📝 ${e.message}`
+},
+      { quoted: fkontak}
+)
+}
+}
 
-handler.help = ['kick', 'ban', 'echar', 'sacar'];
-handler.tags = ['group'];
-handler.command = /^(kick|ban|echar|sacar)$/i;
-handler.group = true;
-handler.admin = true;
-handler.botAdmin = true;
+handler.help = ['kick']
+handler.tags = ['grupo']
+handler.command = ['kick', 'echar', 'hechar', 'sacar', 'ban']
+handler.admin = true
+handler.group = true
+handler.botAdmin = true
 
-export default handler;
+export default handler
