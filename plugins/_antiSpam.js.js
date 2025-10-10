@@ -1,42 +1,87 @@
-import {performance} from 'perf_hooks';
-const handler = async (m, {conn, text}) => {
-const start = performance.now();    
-const end = performance.now();
-const executionTime = (end - start);
-async function loading() {
-var hawemod = [
-    "Injecting Malware",
-    " █ 10%",
-    " █ █ 20%",
-    " █ █ █ 30%",
-    " █ █ █ █ 40%",
-    " █ █ █ █ █ 50%",
-    " █ █ █ █ █ █ 60%",
-    " █ █ █ █ █ █ █ 70%",
-    " █ █ █ █ █ █ █ █ 80%",
-    " █ █ █ █ █ █ █ █ █ 90%",
-    " █ █ █ █ █ █ █ █ █ █ 100%",
-    "System hyjacking on process.. \\n Conecting to Server error to find 404 ",
-    "Device successfully connected... \\n Riciving data...",
-    "Data hyjacked from divice 100% completed \\n killing all evidence killing all malwares...",
-    " HACKING COMPLETED ",
-    " SENDING LOG DOCUMENTS...",
-    " SUCCESSFULLY SENT DATA AND Connection disconnected",
-    "BACKLOGS CLEARED"
-  ];
-      let { key } = await conn.sendMessage(m.chat, {text: `*☠ ¡¡Starting doxxing!! ☠*`}, {quoted: m})
- for (let i = 0; i < hawemod.length; i++) {
-   await new Promise(resolve => setTimeout(resolve, 1000)); 
-   await conn.sendMessage(m.chat, {text: hawemod[i], edit: key}, {quoted: m}); 
-  }     
- }
-loading()    
-};
-handler.help = ['doxxing <nombre> | <@tag>'];
-handler.tags = ['fun'];
-handler.command = /^doxxing/i;
-export default handler;
 
-function getRandomValue(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
+import axios from "axios"
+import cheerio from "cheerio"
+import fs from "fs"
+import path from "path"
+import { tmpdir} from "os"
+import fetch from "node-fetch"
+import FormData from "form-data"
+
+async function mediafire(url) {
+  const { data} = await axios.get(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N)",
+      "Referer": "https://www.mediafire.com/",
+      "Accept": "text/html"
+},
+});
+
+  const $ = cheerio.load(data);
+  const name = $('div.dl-btn-label').text().trim()
+  const size = $('a#downloadButton').text().match(/\((.*?)\)/)?.[1] || '';
+  let downloadUrl = $('a#downloadButton').attr('href');
+  const fileType = $('div.filetype').text().trim();
+
+  if (downloadUrl && downloadUrl.startsWith('//')) {
+    downloadUrl = 'https:' + downloadUrl;
 }
+
+  return {
+    name,
+    size,
+    fileType,
+    downloadUrl
+};
+}
+
+async function uploadUguu(filePath) {
+  const form = new FormData()
+  form.append("file", fs.createReadStream(filePath))
+
+  const res = await fetch("https://uguu.se/api.php?d=upload-tool", {
+    method: "POST",
+    body: form
+})
+
+  const url = await res.text()
+  return { url}
+}
+
+let handler = async (m, { args}) => {
+  try {
+    const url = args[0]
+    if (!url ||!url.includes("mediafire.com")) throw "```[ 📎 ] Proporciona una URL válida de MediaFire```"
+
+    const fileInfo = await mediafire(url)
+    const fileName = fileInfo.name.replace(/\s+/g, "_")
+    const filePath = path.join(tmpdir(), fileName)
+
+    const response = await axios.get(fileInfo.downloadUrl, { responseType: "stream"})
+    const writer = fs.createWriteStream(filePath)
+    await new Promise((resolve, reject) => {
+      response.data.pipe(writer)
+      writer.on("finish", resolve)
+      writer.on("error", reject)
+})
+
+    const { url: uploadedUrl} = await uploadUguu(filePath)
+    await fs.promises.unlink(filePath)
+
+    const caption = `
+\`\`\`[ 📁 ] Nombre: ${fileInfo.name}
+[ 📦 ] Tamaño: ${fileInfo.size}
+[ 📄 ] Tipo: ${fileInfo.fileType}
+[ 🔗 ] Enlace original: ${fileInfo.downloadUrl}
+[ ☁️ ] Subido a Uguu: ${uploadedUrl}\`\`\`
+    `.trim()
+
+    await m.reply(caption)
+} catch (e) {
+    await m.reply(`\`\`\`[ ⚠️ ] Error: ${e}\`\`\``)
+}
+}
+
+handler.help = ["mediafire"]
+handler.tags = ["downloader"]
+handler.command = /^mediafire3$/i
+export default handler
