@@ -1,47 +1,60 @@
-/*• Código Creado por Izumi-Core
-• No quites créditos.
-• MediaFire Downloader - (url)
-• https://whatsapp.com/channel/0029VaJxgcB0bIdvuOwKTM2Y */
-import axios from 'axios';
+import axios from "axios"
+import cheerio from "cheerio"
 
-let handler = async (m, { conn, args, command }) => {
-    if (!args[0]) {
-        return conn.reply(m.chat, `➤ \`ACCION MAL USADA\` ❗\n\n> Ingresa un enlace de *Mediafire* para descargar el archivo.\n\n» Formato correcto:\n#${command} (url)\n\n» Ejemplo:\n#${command} https://www.mediafire.com/file/xxxxxx/file`, m);
-    }
+async function mediafire(url) {
+  const { data} = await axios.get(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
+      "Referer": "https://www.mediafire.com/",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+},
+});
 
-    try {
-        await m.react('🕑');
+  const $ = cheerio.load(data);
+  const name = $('div.dl-btn-label').text().trim()
+  const size = $('a#downloadButton').text().match(/\((.*?)\)/)?.[1] || '';
+  let downloadUrl = $('a#downloadButton').attr('href');
+  const imageUrl = $('meta[itemprop="image"]').attr('content');
+  const description = $('meta[itemprop="description"]').attr('content') || '-'
+  const fileType = $('div.filetype').text().trim();
 
-        const apiUrl = `https://api.sylphy.xyz/download/mediafire?url=${encodeURIComponent(args[0])}&apikey=sylphy-110a`;
-        const { data } = await axios.get(apiUrl);
+  if (downloadUrl && downloadUrl.startsWith('//')) {
+    downloadUrl = 'https:' + downloadUrl;
+}
 
-        if (!data.status) {
-            await m.react('❌');
-            return conn.reply(m.chat, `➤ \`UPS, ERROR\` ❌\n\nIntente nuevamente, si persiste envíe:\n".reporte no funciona .${command}"\n> El equipo lo revisará pronto. 🚨`, m);
-        }
-
-        const { filename, filesize, mimetype, uploaded, dl_url } = data.data;
-
-        const caption = `📥 *Mediafire Downloader*\n\n📄 *Nombre:* ${filename}\n📦 *Tamaño:* ${filesize}\n📂 *Tipo:* ${mimetype}\n📅 *Subido:* ${uploaded}`;
-
-        await conn.sendMessage(m.chat, {
-            document: { url: dl_url },
-            fileName: filename,
-            mimetype: mimetype || 'application/octet-stream',
-            caption
-        }, { quoted: m });
-
-        await m.react('✅');
-
-    } catch (error) {
-        console.error(error);
-        await m.react('❌');
-        return conn.reply(m.chat, `➤ \`UPS, ERROR\` ❌\n\nIntente nuevamente, si persiste envíe:\n".reporte no funciona .${command}"\n> El equipo lo revisará pronto. 🚨`, m);
-    }
+  return {
+    name,
+    downloadUrl,
+    details: {
+      size,
+      description,
+      imageUrl,
+      fileType
+}
 };
+}
 
-handler.help = ['mediafire <url>'];
-handler.tags = ['dl'];
-handler.command = /^(mediafire|mf)$/i;
+let handler = async (m, { args}) => {
+  try {
+    const url = args[0]
+    if (!url ||!url.includes("mediafire.com")) throw "```[ 📎 ] Proporciona una URL válida de MediaFire```"
 
-export default handler;
+    const res = await mediafire(url)
+    const caption = `
+\`\`\`[ 📁 ] Nombre: ${res.name}
+[ 📦 ] Tamaño: ${res.details.size}
+[ 📄 ] Tipo: ${res.details.fileType}
+[ 📝 ] Descripción: ${res.details.description}
+[ 🔗 ] Enlace de descarga: ${res.downloadUrl}\`\`\`
+    `.trim()
+
+    await m.reply(caption)
+} catch (e) {
+    await m.reply(`\`\`\`[ ⚠️ ] Error: ${e}\`\`\``)
+}
+}
+
+handler.help = ["mediafire"]
+handler.tags = ["downloader"]
+handler.command = /^mediafire$/i
+export default handler
