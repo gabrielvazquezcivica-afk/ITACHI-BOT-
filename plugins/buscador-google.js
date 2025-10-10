@@ -235,7 +235,14 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     console.error('[gweb] Error comando:', e)
     return conn.reply(m.chat, `❌ Error: ${e.message || e}`, m, ctx)
   } finally {
-    if (status?.key) { try { await conn.sendMessage(m.chat, { delete: status.key }) } catch {} }
+    // Corregido: Verificación más estricta antes de intentar borrar el mensaje
+    if (status && typeof status.key === 'object' && status.key.id && status.key.remoteJid) { 
+        try { 
+            await conn.sendMessage(m.chat, { delete: status.key }) 
+        } catch (e) {
+            console.error('[gweb] Error al intentar borrar el mensaje de estado:', e.message)
+        } 
+    }
   }
 }
 
