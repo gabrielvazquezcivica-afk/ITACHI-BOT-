@@ -26,7 +26,7 @@ const handler = async (m, { conn, text, command }) => {
 
     if (command === "play") {
       try {
-    const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${video.url}&apikey=S`)).json()
+    const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${video.url}&apikey=sylphy-e321`)).json()
  await conn.sendFile(m.chat, api.res.url, video.title, "", m);
             await m.react("✔️");
         } catch (error) {
@@ -34,7 +34,8 @@ const handler = async (m, { conn, text, command }) => {
         }
     } else if (command === "play2" || command === "playvid") {
     try {
-      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=S`)).json()
+      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=S
+sylphy-e32`)).json()
       let dl = api.res.url
       const res = await fetch(dl);
       const cont = res.headers.get('Content-Length');
@@ -48,7 +49,7 @@ const handler = async (m, { conn, text, command }) => {
         }
     }
 }
-handler.help = ["play1", "play2"];
+handler.help = ["play", "play2"];
 handler.tags = ["download"];
 handler.command = ["play", "play2", "playvid"];
 export default handler;
