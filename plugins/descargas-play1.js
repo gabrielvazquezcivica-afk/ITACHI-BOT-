@@ -26,7 +26,7 @@ const handler = async (m, { conn, text, command }) => {
 
     if (command === "play1") {
       try {
-    const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${video.url}&apikey=Sylphiette's`)).json()
+    const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${video.url}&apikey=sylphy-e321`)).json()
  await conn.sendFile(m.chat, api.res.url, video.title, "", m);
             await m.react("✔️");
         } catch (error) {
@@ -34,7 +34,7 @@ const handler = async (m, { conn, text, command }) => {
         }
     } else if (command === "play3" || command === "playvid") {
     try {
-      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=Sylphiette's`)).json()
+      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=sylphy-e321 `)).json()
       let dl = api.res.url
       const res = await fetch(dl);
       const cont = res.headers.get('Content-Length');
