@@ -34,8 +34,7 @@ const handler = async (m, { conn, text, command }) => {
         }
     } else if (command === "play2" || command === "playvid") {
     try {
-      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=S
-sylphy-e32`)).json()
+      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=sylphy-e321`)).json()
       let dl = api.res.url
       const res = await fetch(dl);
       const cont = res.headers.get('Content-Length');
