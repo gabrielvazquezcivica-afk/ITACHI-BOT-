@@ -1,49 +1,48 @@
+import fetch from "node-fetch";
 
-import fetch from 'node-fetch';
-
-let handler = async (m, { conn, args, command, usedPrefix}) => {
-  const url = args[0];
-  if (!url ||!url.includes('spotify.com')) {
-    return m.reply(
-      `╭─⬣「 *SASUKE* 」⬣
-│ ≡◦ 🎧 *Uso correcto del comando:*
-│ ≡◦ ${usedPrefix + command} https://open.spotify.com/track/ID
-╰─⬣`
-);
+const handler = async (m, { conn, text, command}) => {
+  if (!text) {
+    return m.reply("🎵 Ingresa el enlace de una canción de Spotify.");
 }
+
+  await m.react("🔎");
+
+  const apiKey = "sylphy-e321";
+  const apiUrl = `https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=${sylphy-e321}`;
 
   try {
-    const res = await fetch(`https://api.lolhuman.xyz/api/spotify?apikey=beta&url=${encodeURIComponent(url)}`);
-    const json = await res.json();
+    const res = await fetch(apiUrl);
+    const data = await res.json();
 
-    if (!json.status ||!json.result) {
-      return m.reply(`╭─⬣「 *SASUKE* 」⬣
-│ ≡◦ ❌ *No se encontró resultado para:* ${url}
-╰─⬣`);
+    if (!data ||!data.res ||!data.res.url) {
+      return m.reply("❌ No se pudo obtener el archivo desde Spotify.");
 }
 
-    const { title, artists, thumbnail, link} = json.result;
+    const { title, thumbnail, url} = data.res;
 
-    await conn.sendMessage(m.chat, {
-      image: { url: thumbnail},
-      caption: `╭─⬣「 *INFO SPOTIFY* 」⬣
-│ ≡◦ 🎵 *Título:* ${title}
-│ ≡◦ 👤 *Artista:* ${artists}
-│ ≡◦ 🌐 *Spotify:* ${link}
-╰─⬣`
-}, { quoted: m});
+    const caption = `
+╭─🎶 *Sasuke Bot - Spotify Downloader* 🎶─╮
+│
+│ 🎧 *Título:* ${title}
+│ 🔗 *Enlace:* ${text}
+│ 📥 *Descargando archivo...*
+│
+╰──────────────────────────────╯
+`;
 
-} catch (e) {
-    console.error('Error en Spotify:', e);
-    return m.reply(`╭─⬣「 *SASUKE* 」⬣
-│ ≡◦ ⚠️ *Error al procesar la solicitud.*
-│ ≡◦ Detalles: ${e.message}
-╰─⬣`);
+    const thumb = await (await fetch(thumbnail)).buffer();
+    await conn.sendFile(m.chat, thumb, "spotify.jpg", caption, m);
+    await conn.sendFile(m.chat, url, `${title}.mp3`, "", m);
+    await m.react("✅");
+
+} catch (error) {
+    console.error(error);
+    return m.reply("⚠️ Ocurrió un error al procesar tu solicitud.");
 }
 };
 
-handler.help = ['spotify <url>'];
-handler.tags = ['descargas'];
-handler.command = ['spotify']
+handler.help = ["spotify"];
+handler.tags = ["descargas", "musica"];
+handler.command = ["spotify"];
 
 export default handler;
