@@ -13,39 +13,44 @@ let handler = async (m, { conn, text, usedPrefix, command}) => {
   await m.react('🌀');
 
   try {
-    let res = await fetch(`https://api.nekorinn.my.id/downloader/spotifyplay?q=${encodeURIComponent(text)}`);
-    let json = await res.json();
+    const apiKey = "sylphy-e321";
+    const searchUrl = `https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=sylphy-e321`;
+    const res = await fetch(searchUrl);
+    const json = await res.json();
 
-    if (!json.result ||!json.result.downloadUrl) {
-      throw new Error('No se encontró la canción');
+    if (!json?.res?.url) {
+      throw new Error('No se encontró la canción o no se pudo descargar.');
 }
 
+    const { title, thumbnail, url} = json.res;
+
     // Enviar imagen si existe
-    if (json.result.thumbnail) {
+    if (thumbnail) {
       await conn.sendMessage(m.chat, {
-        image: { url: json.result.thumbnail},
-        caption: `🎶 *${json.result.title || text}*\n🎤 *${json.result.artist || 'Artista desconocido'}*`
+        image: { url: thumbnail},
+        caption: `🎶 *${title || text}*\n🎤 *Spotify Track*`
 }, { quoted: m});
 }
 
     // Enviar audio
     await conn.sendMessage(m.chat, {
-      audio: { url: json.result.downloadUrl},
-      mimetype: 'audio/mpeg'
+      audio: { url},
+      mimetype: 'audio/mpeg',
+      fileName: `${title}.mp3`
 }, { quoted: m});
 
     // Confirmación final
     await m.reply(`
-╭━〔 *🔊 SPOTIFY DOWNLOADER* 〕━⬣
+╭━〔 *🔊 SPOTIFY - SASUKE BOT* 〕━⬣
 ┃ 🌀 *Petición:* ${text}
-┃ 💣 *Estado:* Éxito, canción enviada.
+┃ ✅ *Estado:* Canción enviada con éxito.
 ╰━━━━━━━━━━━━━━━━━━━━⬣
     `.trim());
 
     await m.react('🎵');
 } catch (e) {
     console.error(e);
-    await m.reply('❌ Hubo un error al procesar tu solicitud. Intenta con otro nombre de canción.');
+    await m.reply('❌ Hubo un error al procesar tu solicitud. Intenta con otro nombre de canción o verifica el enlace.');
     await m.react('❌');
 }
 };
