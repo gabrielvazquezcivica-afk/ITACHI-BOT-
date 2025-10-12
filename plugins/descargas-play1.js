@@ -1,3 +1,4 @@
+
 import yts from "yt-search";
 const limit = 100;
 
@@ -41,7 +42,7 @@ const handler = async (m, { conn, text, command}) => {
       await conn.sendFile(m.chat, api.res.url, `${video.title}.mp3`, "", m);
       await m.react("✔️");
 
-} else if (command === "play3" || command === "playvid") {
+} else if (command === "play5" || command === "playvid") {
       const api = await (
         await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=sylphy-e321`)
 ).json();
@@ -69,8 +70,8 @@ const handler = async (m, { conn, text, command}) => {
 }
 };
 
-handler.help = ["play"];
+handler.help = ["play", "play5", "playvid"];
 handler.tags = ["download"];
-handler.command = ["play"];
+handler.command = ["play", "play5", "playvid"];
 
 export default handler;
