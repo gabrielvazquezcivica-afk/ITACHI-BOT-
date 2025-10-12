@@ -1,53 +1,46 @@
-import fetch from 'node-fetch'
-import { Sticker } from 'wa-sticker-formatter'
 
-let handler = async (m, { conn, text, command }) => {
-  if (!text) return m.reply(`Ejemplo: .${command} Barboza`) 
+const handler = async (m, { conn, text}) => {
+  const query = text || "Messi";
+  const apikey = "sylphy-e321";
 
   try {
-    const searchRes = await fetch(`https://zenzxz.dpdns.org/search/stickerlysearch?query=${encodeURIComponent(text)}`)
-    const searchJson = await searchRes.json()
+    const res = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(query)}&apikey=sylphy-e321`);
+    const json = await res.json();
 
-    if (!searchJson.status || !Array.isArray(searchJson.data) || searchJson.data.length === 0) {
-      return m.reply('No hay stickers aquí')
-    }
-
-    const pick = searchJson.data[Math.floor(Math.random() * searchJson.data.length)]
-
-    const detailUrl = `https://zenzxz.dpdns.org/tools/stickerlydetail?url=${encodeURIComponent(pick.url)}`
-    const detailRes = await fetch(detailUrl)
-    const detailJson = await detailRes.json()
-
-    if (!detailJson.status || !detailJson.data || !Array.isArray(detailJson.data.stickers) || detailJson.data.stickers.length === 0) {
-      return m.reply('Error al tomar los stickers')
-    }
-
-    const packName = detailJson.data.name
-    const authorName = detailJson.data.author?.name || 'unknown'
-
-    m.reply(`Encontré 5 stickers`)
-
-    let maxSend = 5
-    for (let i = 0; i < Math.min(detailJson.data.stickers.length, maxSend); i++) {
-      const img = detailJson.data.stickers[i]
-      let sticker = new Sticker(img.imageUrl, {
-        pack: wm,
-        author: '',
-        type: 'full',
-        categories: ['😏'],
-        id: 'zenzxd'
-      })
-      let buffer = await sticker.toBuffer()
-      await conn.sendMessage(m.chat, { sticker: buffer }, { quoted: m })
-    }
-
-  } catch (e) {
-    console.error(e)
-    m.reply('Error al procesar los stickers')
-  }
+    if (!json.status ||!json.res || json.res.length === 0) {
+      return m.reply("❌ No se encontraron stickers.");
 }
 
-handler.help = ['stikerly *<consulta>*']
-handler.tags = ['sticker']
-handler.command = /^stikerly$/i
-export default handler
+    const packs = json.res.slice(0, 5); // Solo los primeros 5
+
+    for (const pack of packs) {
+      const caption = `
+╭─🎉 *Stickerly - Pack de Stickers* 🎉─╮
+│
+│ 🏷️ *Nombre:* ${pack.name}
+│ 👤 *Autor:* ${pack.author}
+│ 🧩 *Stickers:* ${pack.stickerCount}
+│ 👁️ *Vistas:* ${pack.viewCount.toLocaleString()}
+│ 📤 *Exportados:* ${pack.exportCount.toLocaleString()}
+│ 🔗 *Link:* ${pack.url}
+╰────────────────────────────────────╯
+`;
+
+      await conn.sendMessage(
+        m.chat,
+        { image: { url: pack.thumbnailUrl}, caption},
+        { quoted: m}
+);
+}
+
+} catch (error) {
+    console.error(error);
+    await m.reply(`⚠️ Error: ${error.message}`);
+}
+};
+
+handler.help = ["stikerly <texto>"];
+handler.tags = ["stickers"];
+handler.command = ["stikerly"];
+
+export default handler;
