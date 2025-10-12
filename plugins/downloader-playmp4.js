@@ -1,3 +1,4 @@
+
 import yts from "yt-search";
 import fetch from "node-fetch";
 
@@ -34,8 +35,13 @@ const handler = async (m, { conn, text, command}) => {
   try {
     if (command === "play") {
       const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${video.url}&apikey=sylphy-e321`)).json();
-      await conn.sendFile(m.chat, api.res.url, `${video.title}.mp3`, "", m);
+      await conn.sendMessage(m.chat, {
+        audio: { url: api.res.url},
+        mimetype: 'audio/mp4',
+        ptt: true
+}, { quoted: m});
       await m.react("✅");
+
 } else if (command === "play2" || command === "playvid") {
       const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${video.url}&apikey=sylphy-e321`)).json();
       const dl = api.res.url;
