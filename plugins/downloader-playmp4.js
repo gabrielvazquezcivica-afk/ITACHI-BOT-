@@ -34,15 +34,16 @@ const handler = async (m, { conn, text, command}) => {
 
   try {
     if (command === "play") {
-      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${video.url}&apikey=sylphy-e321`)).json();
-      const audioRes = await fetch(api.res.url);
+      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3/v2?url=${video.url}&apikey=sylphy-e321`)).json();
+      const audioUrl = api.res.url;
+
+      const audioRes = await fetch(audioUrl);
       const audioBuffer = await audioRes.buffer();
 
       await conn.sendMessage(m.chat, {
         audio: audioBuffer,
         mimetype: 'audio/mp4',
-        ptt: true,
-        fileName: `${video.title}.mp3`
+        ptt: true
 }, { quoted: m});
 
       await m.react("✅");
