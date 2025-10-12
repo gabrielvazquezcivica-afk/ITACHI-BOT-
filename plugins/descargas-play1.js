@@ -36,7 +36,7 @@ const handler = async (m, { conn, text, command}) => {
 );
 
   try {
-    if (command === "play1") {
+    if (command === "play") {
       const api = await (
         await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${video.url}&apikey=sylphy-e321`)
 ).json();
