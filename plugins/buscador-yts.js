@@ -1,19 +1,31 @@
-
-const handler = async (m, { conn, text}) => {
-  const query = text || "Messi"; // Puedes cambiar esto por cualquier término
+const ytSearchHandler = async (m, { conn, text, usedPrefix, command}) => {
   const apikey = "sylphy-e321";
 
+  // Validar entrada
+  if (!text ||!text.trim()) {
+    await conn.reply(
+      m.chat,
+      `📌 *Uso correcto:*\n${usedPrefix + command} <término de búsqueda>\n📍 *Ejemplo:* ${usedPrefix + command} Nio Garcia Infinitamente remix`,
+      m
+);
+    return;
+}
+
+  const query = text.trim();
+  await conn.reply(m.chat, `🔎 Buscando en YouTube por: *${query}*`, m);
+
   try {
-    const res = await fetch(`https://api.sylphy.xyz/search/youtube?q=${encodeURIComponent(query)}&apikey=sylphy-e321`);
+    const res = await fetch(`https://api.sylphy.xyz/search/youtube?q=${encodeURIComponent(query)}&apikey=${apikey}`);
     const json = await res.json();
 
     if (!json.status ||!json.res || json.res.length === 0) {
       return m.reply("❌ No se encontraron resultados.");
 }
 
-    const video = json.res[0]; // Primer resultado
+    const videos = json.res.slice(0, 5); // Primeros 5 resultados
 
-    const banner = `
+    for (const video of videos) {
+      const caption = `
 ╭─🎶 *Sasuke Bot - Audio YouTube* 🎶─╮
 │
 │ 🎵 *Título:* ${video.title}
@@ -22,25 +34,29 @@ const handler = async (m, { conn, text}) => {
 │ 👁️ *Vistas:* ${video.views.toLocaleString()}
 │ 📅 *Publicado:* ${video.published}
 │ 🔗 *Enlace:* ${video.url}
-│ 📥 *Descargando archivo de audio...*
+│
+│ 🎧 *Para descargar:*
+│.ytmp3+ ${video.url}  ➤ Audio
+│.ytmp4+ ${video.url}  ➤ Video
 ╰──────────────────────────────────╯
+
+> © Código Oficial de Barboza MD™
 `;
 
-    await conn.sendFile(
-      m.chat,
-      video.thumbnail,
-      "thumb.jpg",
-      banner,
-      m
+      await conn.sendMessage(
+        m.chat,
+        { image: { url: video.thumbnail}, caption},
+        { quoted: m}
 );
-
+}
 } catch (error) {
-    return m.reply(`⚠️ Error: ${error.message}`);
+    console.error("❌ Error:", error);
+    await conn.reply(m.chat, `🚨 *Error:* ${error.message || "Error desconocido"}`, m);
 }
 };
 
-handler.help = ["ytsearch"];
-handler.tags = ["search"];
-handler.command = ["ytsearch", "buscar"];
+ytSearchHandler.help = ["ytsearch", "yts <texto>"];
+ytSearchHandler.tags = ["búsquedas"];
+ytSearchHandler.command = /^(ytsearch|yts)$/i;
 
-export default handler;
+export default ytSearchHandler;
