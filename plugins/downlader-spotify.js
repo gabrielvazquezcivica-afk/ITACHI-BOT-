@@ -1,14 +1,14 @@
+
 import fetch from "node-fetch";
 
-const handler = async (m, { conn, text, command}) => {
+const handler = async (m, { conn, text}) => {
   if (!text) {
-    return m.reply("🎵 Ingresa el enlace de una canción de Spotify.");
+    return m.reply("🎧 Ingresa el enlace de una canción de Spotify.");
 }
 
   await m.react("🔎");
 
-  const apiKey = "sylphy-e321";
-  const apiUrl = `https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=${apikey}`;
+  const apiUrl = `https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=sylphy-e321`;
 
   try {
     const res = await fetch(apiUrl);
@@ -23,7 +23,7 @@ const handler = async (m, { conn, text, command}) => {
     const caption = `
 ╭─🎶 *Sasuke Bot - Spotify Downloader* 🎶─╮
 │
-│ 🎧 *Título:* ${title}
+│ 🎵 *Título:* ${title}
 │ 🔗 *Enlace:* ${text}
 │ 📥 *Descargando archivo...*
 │
