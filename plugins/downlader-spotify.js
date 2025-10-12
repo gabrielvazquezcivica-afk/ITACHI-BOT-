@@ -11,7 +11,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
   // Si es una URL directa de Spotify
   if (text.includes("open.spotify.com/track")) {
     try {
-      const res = await fetch(`https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=sylphy-e321`)
+      const res = await fetch(`https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=${apikey}`)
       const json = await res.json()
 
       if (!json.status ||!json.data ||!json.data.dl_url) {
@@ -29,8 +29,13 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 ╰────────────────────────────╯
 `
 
-      await conn.sendFile(m.chat, info.image, "cover.jpg", caption, m)
-      await conn.sendFile(m.chat, info.dl_url, `${info.title}.m4a`, "", m)
+      await conn.sendMessage(m.chat, { image: { url: info.image}, caption}, { quoted: m})
+      await conn.sendMessage(m.chat, {
+        audio: { url: info.dl_url},
+        mimetype: 'audio/mp4',
+        fileName: `${info.title}.m4a`
+}, { quoted: m})
+
 } catch (e) {
       console.error(e)
       m.reply("⚠️ Error al descargar la canción.")
@@ -40,7 +45,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 
   // Si es texto, buscar y descargar automáticamente el primer resultado
   try {
-    const res = await fetch(`https://api.sylphy.xyz/search/spotify?q=${encodeURIComponent(text)}&apikey=sylphy-e321 `)
+    const res = await fetch(`https://api.sylphy.xyz/search/spotify?q=${encodeURIComponent(text)}&apikey=${apikey}`)
     const json = await res.json()
 
     if (!json.status ||!Array.isArray(json.data) || json.data.length === 0) {
@@ -67,8 +72,12 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 ╰────────────────────────────╯
 `
 
-    await conn.sendFile(m.chat, info.image, "cover.jpg", caption, m)
-    await conn.sendFile(m.chat, info.dl_url, `${info.title}.m4a`, "", m)
+    await conn.sendMessage(m.chat, { image: { url: info.image}, caption}, { quoted: m})
+    await conn.sendMessage(m.chat, {
+      audio: { url: info.dl_url},
+      mimetype: 'audio/mp4',
+      fileName: `${info.title}.m4a`
+}, { quoted: m})
 
 } catch (e) {
     console.error(e)
