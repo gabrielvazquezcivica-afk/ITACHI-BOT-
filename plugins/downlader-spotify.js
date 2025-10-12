@@ -8,7 +8,7 @@ const handler = async (m, { conn, text, command}) => {
   await m.react("🔎");
 
   const apiKey = "sylphy-e321";
-  const apiUrl = `https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=${sylphy-e321}`;
+  const apiUrl = `https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=${apikey}`;
 
   try {
     const res = await fetch(apiUrl);
