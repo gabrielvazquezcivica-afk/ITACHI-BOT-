@@ -20,7 +20,7 @@ let handler = async (m, { conn, text, command}) => {
     // Simulación de 3 stickers únicos usando variaciones del thumbnail
     const stickerUrls = [
       pack.thumbnailUrl,
-      pack.thumbnailUrl + "?v=1", // Simulación de variación
+      pack.thumbnailUrl + "?v=1",
       pack.thumbnailUrl + "?v=2"
     ]
 
@@ -29,7 +29,7 @@ let handler = async (m, { conn, text, command}) => {
         pack: pack.name,
         author: pack.author,
         type: 'full',
-        categories: ['🔥'],
+        categories: ['⚽'],
         id: `sylphy-${i}`
 })
       let buffer = await sticker.toBuffer()
