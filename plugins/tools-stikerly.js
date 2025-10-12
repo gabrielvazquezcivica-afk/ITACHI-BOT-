@@ -1,46 +1,42 @@
+import fetch from 'node-fetch'
+import { Sticker} from 'wa-sticker-formatter'
 
-const handler = async (m, { conn, text}) => {
-  const query = text || "Messi";
-  const apikey = "sylphy-e321";
+let handler = async (m, { conn, text, command}) => {
+  if (!text) return m.reply(`📌 Ejemplo:.${command} Messi`)
 
   try {
-    const res = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(query)}&apikey=sylphy-e321`);
-    const json = await res.json();
+    const searchRes = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(text)}&apikey=sylphy-e321`)
+    const searchJson = await searchRes.json()
 
-    if (!json.status ||!json.res || json.res.length === 0) {
-      return m.reply("❌ No se encontraron stickers.");
+    if (!searchJson.status ||!Array.isArray(searchJson.res) || searchJson.res.length === 0) {
+      return m.reply('❌ No se encontraron stickers.')
 }
 
-    const packs = json.res.slice(0, 5); // Solo los primeros 5
+    const pick = searchJson.res[Math.floor(Math.random() * searchJson.res.length)]
 
-    for (const pack of packs) {
-      const caption = `
-╭─🎉 *Stickerly - Pack de Stickers* 🎉─╮
-│
-│ 🏷️ *Nombre:* ${pack.name}
-│ 👤 *Autor:* ${pack.author}
-│ 🧩 *Stickers:* ${pack.stickerCount}
-│ 👁️ *Vistas:* ${pack.viewCount.toLocaleString()}
-│ 📤 *Exportados:* ${pack.exportCount.toLocaleString()}
-│ 🔗 *Link:* ${pack.url}
-╰────────────────────────────────────╯
-`;
+    m.reply(`🎉 Encontré el pack *${pick.name}* de *${pick.author}*\n📦 Enviando 5 stickers...`)
 
-      await conn.sendMessage(
-        m.chat,
-        { image: { url: pack.thumbnailUrl}, caption},
-        { quoted: m}
-);
+    // Simulación de 5 stickers usando la miniatura repetida
+    for (let i = 0; i < 5; i++) {
+      let sticker = new Sticker(pick.thumbnailUrl, {
+        pack: pick.name,
+        author: pick.author,
+        type: 'full',
+        categories: ['⚽'],
+        id: `sylphy-${i}`
+})
+      let buffer = await sticker.toBuffer()
+      await conn.sendMessage(m.chat, { sticker: buffer}, { quoted: m})
 }
 
-} catch (error) {
-    console.error(error);
-    await m.reply(`⚠️ Error: ${error.message}`);
+} catch (e) {
+    console.error(e)
+    m.reply('⚠️ Error al procesar los stickers.')
 }
-};
+}
 
-handler.help = ["stikerly <texto>"];
-handler.tags = ["stickers"];
-handler.command = ["stikerly"];
+handler.help = ['stikerly *<consulta>*']
+handler.tags = ['sticker']
+handler.command = /^stikerly$/i
 
-export default handler;
+export default handler
