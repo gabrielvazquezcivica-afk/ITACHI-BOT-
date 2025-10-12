@@ -33,7 +33,7 @@ const handler = async (m, { conn, text, command}) => {
 
   try {
     if (command === "play") {
-      const api = await (await fetch(`https://api.sylphy.xyz/download/ytmp3v2?url=${video.url}&apikey=sylphy-e321`)).json();
+      const api = await (await fetch(`https://api.sylphy.xyz/download/v2/ytmp3?url=${video.url}&apikey=sylphy-e321`)).json();
       await conn.sendFile(m.chat, api.res.url, `${video.title}.mp3`, "", m);
       await m.react("✅");
 } else if (command === "play2" || command === "playvid") {
