@@ -1,36 +1,37 @@
-
 import fetch from 'node-fetch'
 import { Sticker} from 'wa-sticker-formatter'
 
-const handler = async (m, { conn, text, command}) => {
-  const apikey = "sylphy-e321"
-  if (!text) return m.reply(`📌 Ejemplo:.${command} Messi`)
+let handler = async (m, { conn, text, command}) => {
+  if (!text) return m.reply(`📌 Ejemplo:.${command} Barboza`)
 
   try {
-    // Buscar packs relacionados
-    const res = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(text)}&apikey=${apikey}`)
-    const json = await res.json()
+    const searchRes = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(text)}&apikey=sylphy-e321`)
+    const searchJson = await searchRes.json()
 
-    if (!json.status ||!Array.isArray(json.res) || json.res.length === 0) {
-      return m.reply("❌ No se encontraron packs de stickers.")
+    if (!searchJson.status ||!Array.isArray(searchJson.res) || searchJson.res.length === 0) {
+      return m.reply('❌ No se encontraron stickers.')
 }
 
-    // Seleccionar un pack aleatorio
-    const pack = json.res[Math.floor(Math.random() * json.res.length)]
+    const pick = searchJson.res[Math.floor(Math.random() * searchJson.res.length)]
 
-    // Obtener detalles del pack (simulado, ya que Sylphy no expone stickers individuales)
+    const packName = pick.name
+    const authorName = pick.author || 'Desconocido'
+
+    m.reply(`🎉 Pack encontrado: *${packName}* de *${authorName}*\n📦 Enviando 5 stickers...`)
+
+    // Simulación de 5 stickers únicos usando variaciones del thumbnail
     const stickerUrls = [
-      pack.thumbnailUrl,
-      pack.thumbnailUrl + "?v=1",
-      pack.thumbnailUrl + "?v=2"
+      pick.thumbnailUrl,
+      pick.thumbnailUrl + "?v=1",
+      pick.thumbnailUrl + "?v=2",
+      pick.thumbnailUrl + "?v=3",
+      pick.thumbnailUrl + "?v=4"
     ]
-
-    m.reply(`🎉 Pack encontrado: *${pack.name}* de *${pack.author}*\n📦 Enviando 3 stickers diferentes...`)
 
     for (let i = 0; i < stickerUrls.length; i++) {
       const sticker = new Sticker(stickerUrls[i], {
-        pack: pack.name,
-        author: pack.author,
+        pack: packName,
+        author: authorName,
         type: 'full',
         categories: ['🔥'],
         id: `sylphy-${i}`
@@ -41,7 +42,7 @@ const handler = async (m, { conn, text, command}) => {
 
 } catch (e) {
     console.error(e)
-    m.reply("⚠️ Error al procesar los stickers.")
+    m.reply('⚠️ Error al procesar los stickers.')
 }
 }
 
