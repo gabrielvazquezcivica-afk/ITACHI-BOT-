@@ -1,40 +1,33 @@
+
 import fetch from 'node-fetch'
 import { Sticker} from 'wa-sticker-formatter'
 
 let handler = async (m, { conn, text, command}) => {
-  if (!text) return m.reply(`📌 Ejemplo:.${command} Barboza`)
+  const apikey = "sylphy-e321"
+  if (!text) return m.reply(`📌 Ejemplo:.${command} Messi`)
 
   try {
-    const searchRes = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(text)}&apikey=sylphy-e321`)
+    const searchRes = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(text)}&apikey=${apikey}`)
     const searchJson = await searchRes.json()
 
-    if (!searchJson.status ||!Array.isArray(searchJson.res) || searchJson.res.length === 0) {
-      return m.reply('❌ No se encontraron stickers.')
+    if (!searchJson.status ||!Array.isArray(searchJson.res) || searchJson.res.length < 2) {
+      return m.reply('❌ No se encontraron suficientes packs de stickers.')
 }
 
-    const pick = searchJson.res[Math.floor(Math.random() * searchJson.res.length)]
+    // Seleccionar 2 packs aleatorios
+    const shuffled = searchJson.res.sort(() => 0.5 - Math.random())
+    const selectedPacks = shuffled.slice(0, 2)
 
-    const packName = pick.name
-    const authorName = pick.author || 'Desconocido'
+    m.reply(`🎉 Se encontraron 2 packs\n📦 Enviando 1 sticker de cada uno...`)
 
-    m.reply(`🎉 Pack encontrado: *${packName}* de *${authorName}*\n📦 Enviando 5 stickers...`)
-
-    // Simulación de 5 stickers únicos usando variaciones del thumbnail
-    const stickerUrls = [
-      pick.thumbnailUrl,
-      pick.thumbnailUrl + "?v=1",
-      pick.thumbnailUrl + "?v=2",
-      pick.thumbnailUrl + "?v=3",
-      pick.thumbnailUrl + "?v=4"
-    ]
-
-    for (let i = 0; i < stickerUrls.length; i++) {
-      const sticker = new Sticker(stickerUrls[i], {
-        pack: packName,
-        author: authorName,
+    for (let i = 0; i < selectedPacks.length; i++) {
+      const pack = selectedPacks[i]
+      const sticker = new Sticker(pack.thumbnailUrl, {
+        pack: pack.name,
+        author: pack.author || 'Desconocido',
         type: 'full',
         categories: ['🔥'],
-        id: `sylphy-${i}`
+        id: `sylphy-pack-${i}`
 })
       const buffer = await sticker.toBuffer()
       await conn.sendMessage(m.chat, { sticker: buffer}, { quoted: m})
