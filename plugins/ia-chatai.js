@@ -23,6 +23,6 @@ let handler = async (m, { text, command}) => {
 
 handler.help = ['ia <pregunta o mensaje>']
 handler.tags = ['ai']
-handler.command = /^ia$/i
+handler.command = /^ia2$/i
 
 export default handler
