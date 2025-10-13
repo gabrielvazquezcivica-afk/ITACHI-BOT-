@@ -10,15 +10,15 @@ let handler = async (m, { conn, text, command}) => {
     const searchRes = await fetch(`https://api.sylphy.xyz/stickerly/search?q=${encodeURIComponent(text)}&apikey=${apikey}`)
     const searchJson = await searchRes.json()
 
-    if (!searchJson.status ||!Array.isArray(searchJson.res) || searchJson.res.length < 2) {
+    if (!searchJson.status ||!Array.isArray(searchJson.res) || searchJson.res.length < 4) {
       return m.reply('❌ No se encontraron suficientes packs de stickers.')
 }
 
-    // Seleccionar 2 packs aleatorios
+    // Seleccionar 4 packs aleatorios
     const shuffled = searchJson.res.sort(() => 0.5 - Math.random())
-    const selectedPacks = shuffled.slice(0, 2)
+    const selectedPacks = shuffled.slice(0, 4)
 
-    m.reply(`🎉 Se encontraron 2 packs\n📦 Enviando 1 sticker de cada uno...`)
+    m.reply(`🎉 Se encontraron 4 packs\n📦 Enviando 1 sticker de cada uno...`)
 
     for (let i = 0; i < selectedPacks.length; i++) {
       const pack = selectedPacks[i]
