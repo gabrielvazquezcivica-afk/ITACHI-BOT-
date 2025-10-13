@@ -1,41 +1,31 @@
-import fetch from 'node-fetch';
 
-const handler = async (m, { conn, args, usedPrefix, command }) => {
-    try {
-        if (!args.length) {
-            return await conn.reply(m.chat, `❌ Debes proporcionar una pregunta.\n\nEjemplo: *${usedPrefix + command} ¿Cuál es el origen del universo?*`, m);
-        }
+import fetch from 'node-fetch'
 
-        const query = encodeURIComponent(args.join(" "));
-        const apiUrl = `https://api.siputzx.my.id/api/ai/blackboxai-pro?content=${query}`;
+let handler = async (m, { text, command}) => {
+  const apikey = "sylphy-e321"
+  if (!text ||!text.trim()) {
+    return m.reply(`📌 Ejemplo:.${command} ¿Quién es Messi?`)
+}
 
-        await conn.sendMessage(m.chat, { react: { text: '🤖', key: m.key } });
+  try {
+    const url = `https://api.sylphy.xyz/ai/blackbox?text=${encodeURIComponent(text.trim())}&apikey=sylphy-e321`
+    const res = await fetch(url)
+    const json = await res.json()
 
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000); // 10 segundos
+    if (!json.status ||!json.result) {
+      return m.reply("❌ No se pudo obtener respuesta de Blackbox AI.")
+}
 
-        const response = await fetch(apiUrl, { signal: controller.signal });
-        clearTimeout(timeout);
+    await m.reply(`🧠 *Blackbox AI responde:*\n\n${json.result}`)
 
-        if (!response.ok) throw new Error('❌ Error al contactar la API.');
+} catch (e) {
+    console.error("Error en.blackbox:", e)
+    m.reply("⚠️ Error al procesar la solicitud de IA.")
+}
+}
 
-        const result = await response.json();
+handler.help = ['blackbox <pregunta o mensaje>']
+handler.tags = ['ai']
+handler.command = ['blackbox']
 
-        if (!result.status || !result.data) {
-            throw new Error('❌ La API no devolvió una respuesta válida.');
-        }
-
-        const cleanText = result.data.replace(/<[^>]*>/g, '').trim();
-
-        await conn.reply(m.chat, `🧠 *Blackbox AI responde:*\n\n${cleanText}`, m);
-
-        await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } });
-
-    } catch (err) {
-        console.error(err);
-        await conn.reply(m.chat, `❌ Ocurrió un error al procesar tu pregunta.\n\n${err.name === 'AbortError' ? '⏱️ Tiempo de espera agotado.' : err.message}`, m);
-    }
-};
-
-handler.command = /^blackboxai$/i;
-export default handler;
+export default handler
