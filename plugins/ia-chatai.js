@@ -21,8 +21,8 @@ let handler = async (m, { text, command}) => {
 }
 }
 
-handler.help = ['ia <pregunta o mensaje>']
+handler.help = ['ai <pregunta o mensaje>']
 handler.tags = ['ai']
-handler.command = ['ia','chatgpt']
+handler.command = ['ai','chatgpt']
 
 export default handler
