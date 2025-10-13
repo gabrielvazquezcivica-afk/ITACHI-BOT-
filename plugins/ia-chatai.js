@@ -1,45 +1,28 @@
-import axios from 'axios'
 
-let handler = async (m, { conn, usedPrefix, command, text }) => {
-  const username = `${conn.getName(m.sender)}`
-  const basePrompt = `Tu nombre es Llama-IA y fuiste creada por Ivan versión actual es 1.0.0 Usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertida y te encanta aprender. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`
+import fetch from 'node-fetch'
 
-  if (!text) {
-    return conn.reply(m.chat, `🌀 Ingrese una petición para que Llama-IA lo responda.`, m)
-  }
+let handler = async (m, { text, command}) => {
+  const apikey = "sylphy-e321"
+  if (!text) return m.reply(`📌 Ejemplo:.${command} ¿Cuál es el significado de la vida?`)
 
-  await m.react('⚡');
   try {
-    const { key } = await conn.sendMessage(m.chat, {
-      text: `🌀 Llama-IA está procesando tu petición, espera unos segundos.`
-    }, { quoted: m })
+    const res = await fetch(`https://api.sylphy.xyz/ai/chatgpt?text=${encodeURIComponent(text)}&apikey=sylphy-e321 `)
+    const json = await res.json()
 
-    const query = `${basePrompt}. Responde lo siguiente: ${text}`
-    const response = await llamaIA(query, username)
-
-    await conn.sendMessage(m.chat, { text: response, edit: key })
-    await m.react('🌀');
-
-  } catch (err) {
-    console.error(err)
-    await m.react('🛑');
-    await conn.reply(m.chat, '✘ Llama-IA no puede responder a esa pregunta.', m)
-  }
+    if (!json.status ||!json.result) {
+      return m.reply("❌ No se pudo obtener respuesta de la IA.")
 }
 
-handler.help = ['ia', 'chatgpt']
-handler.tags = ['ia']
-handler.command = ['ia', 'chatgpt', 'iallama']
+    await m.reply(`🤖 *Respuesta IA:*\n\n${json.result}`)
+
+} catch (e) {
+    console.error(e)
+    m.reply("⚠️ Error al procesar la solicitud de IA.")
+}
+}
+
+handler.help = ['ia <pregunta o mensaje>']
+handler.tags = ['ai']
+handler.command = /^ia$/i
 
 export default handler
-
-async function llamaIA(text, user) {
-  try {
-    const url = `https://gokublack.xyz/ai/chatgpt?text=${encodeURIComponent(text)}&user=${encodeURIComponent(user)}`
-    const response = await axios.get(url)
-    return response.data.result.chat || "✘ No se obtuvo respuesta de Llama-IA."
-  } catch (error) {
-    console.error('Error llamando a Llama-IA:', error)
-    throw error
-  }
-}
