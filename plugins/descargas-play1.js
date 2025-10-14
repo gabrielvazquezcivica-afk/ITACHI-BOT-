@@ -28,10 +28,16 @@ const handler = async (m, { conn, text, command}) => {
   await conn.sendMessage(m.chat, {
     image: { url: video.thumbnail},
     caption: banner,
-    footer: "Selecciona una opción:",
+    footer: "Únete al canal oficial:",
     buttons: [
-      { buttonId: `vercanal ${video.author.url}`, buttonText: { displayText: "🔎 Ver canal"}, type: 1},
-      { buttonId: `agregarcanal ${video.author.name}`, buttonText: { displayText: "➕ Agregar canal"}, type: 1}
+      {
+        buttonText: { displayText: "🔎 Ver canal"},
+        type: 1,
+        urlButton: {
+          displayText: "🔎 Ver canal",
+          url: "https://whatsapp.com/channel/0029Vb5mi8y3wtb4XeFy8i2i"
+}
+}
     ],
     headerType: 4
 });
