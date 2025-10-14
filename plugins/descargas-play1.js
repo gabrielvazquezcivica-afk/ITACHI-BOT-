@@ -29,17 +29,15 @@ const handler = async (m, { conn, text, command}) => {
     image: { url: video.thumbnail},
     caption: banner,
     footer: "Únete al canal oficial:",
-    buttons: [
+    templateButtons: [
       {
-        buttonText: { displayText: "🔎 Ver canal"},
-        type: 1,
+        index: 1,
         urlButton: {
           displayText: "🔎 Ver canal",
           url: "https://whatsapp.com/channel/0029Vb5mi8y3wtb4XeFy8i2i"
 }
 }
-    ],
-    headerType: 4
+    ]
 });
 
   try {
