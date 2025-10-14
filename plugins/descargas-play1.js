@@ -1,4 +1,3 @@
-
 import yts from "yt-search";
 const limit = 100;
 
@@ -25,20 +24,13 @@ const handler = async (m, { conn, text, command}) => {
 ╰──────────────────────────────────╯
 `;
 
-  await conn.sendMessage(m.chat, {
-    image: { url: video.thumbnail},
-    caption: banner,
-    footer: "Únete al canal oficial:",
-    templateButtons: [
-      {
-        index: 1,
-        urlButton: {
-          displayText: "🔎 Ver canal",
-          url: "https://whatsapp.com/channel/0029Vb5mi8y3wtb4XeFy8i2i"
-}
-}
-    ]
-});
+  await conn.sendFile(
+    m.chat,
+    await (await fetch(video.thumbnail)).buffer(),
+    "thumb.jpg",
+    banner,
+    m
+);
 
   try {
     if (command === "play") {
