@@ -25,13 +25,16 @@ const handler = async (m, { conn, text, command}) => {
 ╰──────────────────────────────────╯
 `;
 
-  await conn.sendFile(
-    m.chat,
-    await (await fetch(video.thumbnail)).buffer(),
-    "thumb.jpg",
-    banner,
-    m
-);
+  await conn.sendMessage(m.chat, {
+    image: { url: video.thumbnail},
+    caption: banner,
+    footer: "Selecciona una opción:",
+    buttons: [
+      { buttonId: `vercanal ${video.author.url}`, buttonText: { displayText: "🔎 Ver canal"}, type: 1},
+      { buttonId: `agregarcanal ${video.author.name}`, buttonText: { displayText: "➕ Agregar canal"}, type: 1}
+    ],
+    headerType: 4
+});
 
   try {
     if (command === "play") {
