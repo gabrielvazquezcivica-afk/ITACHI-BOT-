@@ -1,9 +1,9 @@
-//Codigo Original De MediaHub Correccion V.2.0 No Eliminar Marca Ni Copiar Código, Adaptado Solo Para Sasuke Bot
+//Codigo Original De MediaHub Correccion V.2.0.0 No Eliminar Marca Ni Copiar Código, Adaptado Solo Para Sasuke Bot,Prohibido Copiar Si Quieren Arreglar Sus Bots Bug Usen Otros Codigos ..
 
 import fetch from "node-fetch";
 import axios from 'axios';
 
-const VIDEO_THRESHOLD = 80 * 1024 * 1024;
+const DURATION_THRESHOLD = 30 * 60;
 const HEAVY_FILE_THRESHOLD = 100 * 1024 * 1024;
 const REQUEST_LIMIT = 2;
 const REQUEST_WINDOW_MS = 10000;
@@ -36,6 +36,18 @@ function formatSize(bytes) {
     i++;
   }
   return `${bytes.toFixed(2)} ${units[i]}`;
+}
+
+function formatDuration(seconds) {
+  if (!seconds || isNaN(seconds)) return 'Desconocida';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
 async function getSize(url, retries = 3) {
@@ -116,7 +128,11 @@ async function ytdl(url) {
     }
 
     if (!info || !convert.downloadURL) throw new Error('No se pudo obtener la URL de descarga');
-    return { url: convert.downloadURL, title: info.title || 'Video sin título' };
+    return { 
+      url: convert.downloadURL, 
+      title: info.title || 'Video sin título',
+      duration: info.duration || 0
+    };
   } catch (e) {
     throw new Error(`Error en la descarga: ${e.message}`);
   }
@@ -160,40 +176,19 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
   await m.react('📀');
   try {
-    const { url, title } = await ytdl(text);
+    const { url, title, duration } = await ytdl(text);
     const size = await getSize(url);
 
-    if (!size) {
-      await m.react('⚠️');
-      const buffer = await (await fetch(url, { headers: { 'User-Agent': getRandomUserAgent() } })).buffer();
-      const caption = `*💌 ${title}*\n> ⚖️ Peso: Desconocido\n> 🌎 URL: ${text}`;
-      
-      await conn.sendFile(
-        m.chat,
-        buffer,
-        `${title}.mp4`,
-        caption,
-        m,
-        null,
-        {
-          mimetype: 'video/mp4',
-          asDocument: false,
-          filename: `${title}.mp4`
-        }
-      );
-      
-      await m.react('🟢');
-      return;
-    }
+    const durationInSeconds = parseInt(duration, 10) || 0;
+    const shouldSendAsDocument = durationInSeconds > DURATION_THRESHOLD;
 
-    if (size > HEAVY_FILE_THRESHOLD) {
+    if (size && size > HEAVY_FILE_THRESHOLD) {
       isProcessingHeavy = true;
       await conn.reply(m.chat, 'Archivo Pesado Puede Tardar Un Poco Por Favor Espera', m);
     }
 
     await m.react('✅️');
-    const caption = `*💌 ${title}*\n> ⚖️ Peso: ${formatSize(size)}\n> 🌎 URL: ${text}`;
-    const isSmallVideo = size < VIDEO_THRESHOLD;
+    const caption = `*💌 ${title}*\n> ⚖️ Peso: ${size ? formatSize(size) : 'Desconocido'}\n> ⏱️ Duración: ${formatDuration(durationInSeconds)}\n> 🌎 URL: ${text}`;
 
     const buffer = await (await fetch(url, { headers: { 'User-Agent': getRandomUserAgent() } })).buffer();
     await conn.sendFile(
@@ -205,7 +200,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       null,
       {
         mimetype: 'video/mp4',
-        asDocument: !isSmallVideo,
+        asDocument: shouldSendAsDocument,
         filename: `${title}.mp4`
       }
     );
