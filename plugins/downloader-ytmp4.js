@@ -1,63 +1,33 @@
-//Codigo Original De MediaHub Correccion V.2.0.0 No Eliminar Marca Ni Copiar Código, Adaptado Solo Para Sasuke Bot,Prohibido Copiar Si Quieren Arreglar Sus Bots Bug Usen Otros Codigos ..
+//Codigo Original De MediaHub Correccion V.2.0 No Eliminar Marca Ni Copiar Código, Adaptado Solo Para Sasuke Bot
 
 import fetch from "node-fetch";
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const MAX_FILE_SIZE = 600 * 1024 * 1024;
-const VIDEO_THRESHOLD = 70 * 1024 * 1024;
+const VIDEO_THRESHOLD = 80 * 1024 * 1024;
 const HEAVY_FILE_THRESHOLD = 100 * 1024 * 1024;
-const REQUEST_LIMIT = 3;
+const REQUEST_LIMIT = 2;
 const REQUEST_WINDOW_MS = 10000;
 const COOLDOWN_MS = 120000;
-const TIMEOUT = 60000;
-const MAX_ATTEMPTS = 3;
-
-const TEMP_DIR = path.join(__dirname, 'temp');
-if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
 
 const requestTimestamps = [];
 let isCooldown = false;
 let isProcessingHeavy = false;
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const userAgents = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0'
+];
 
-const sanitizeFilename = (filename) => filename.replace(/[<>:"/\\|?*]/g, '').slice(0, 100);
+const getRandomUserAgent = () => userAgents[Math.floor(Math.random() * userAgents.length)];
 
-const cleanupTempFiles = () => {
-  try {
-    const files = fs.readdirSync(TEMP_DIR);
-    const now = Date.now();
-    files.forEach(file => {
-      const filePath = path.join(TEMP_DIR, file);
-      const stats = fs.statSync(filePath);
-      if (now - stats.mtime.getTime() > 10 * 60 * 1000) {
-        fs.unlinkSync(filePath);
-        console.log(`🗑️ Archivo temporal eliminado: ${file}`);
-      }
-    });
-  } catch (error) {
-    console.error('❌ Error limpiando archivos temporales:', error.message);
-  }
-};
-
-const isValidYouTubeUrl = (url) => {
-  const patterns = [
-    /^(?:https?:\/\/)?(?:www\.|m\.|music\.)?youtube\.com\/watch\?v=[\w-]+/,
-    /^(?:https?:\/\/)?(?:www\.|m\.)?youtu\.be\/[\w-]+/,
-    /^(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/embed\/[\w-]+/,
-    /^(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/v\/[\w-]+/
-  ];
-  return patterns.some(pattern => pattern.test(url));
-};
+const isValidYouTubeUrl = (url) =>
+  /^(?:https?:\/\/)?(?:www\.|m\.|music\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?/.test(url);
 
 function formatSize(bytes) {
-  if (!bytes || isNaN(bytes) || bytes <= 0) return 'Desconocido';
+  if (!bytes || isNaN(bytes)) return 'Desconocido';
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let i = 0;
   bytes = Number(bytes);
@@ -68,168 +38,89 @@ function formatSize(bytes) {
   return `${bytes.toFixed(2)} ${units[i]}`;
 }
 
-const getVideoInfo = async (url) => {
-  try {
-    const videoId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/|.*watch\?v=))([^&?/\s]+)/)?.[1];
-    if (!videoId) throw new Error('No se pudo extraer el ID del video');
-
-    const infoUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+async function getSize(url, retries = 3) {
+  for (let i = 0; i < retries; i++) {
     try {
-      const response = await axios.get(infoUrl, { timeout: 10000 });
-      return {
-        id: videoId,
-        title: response.data.title || 'Video de YouTube',
-        thumbnail: response.data.thumbnail_url || null,
-        author: response.data.author_name || 'Desconocido'
-      };
-    } catch (error) {
-      console.warn('⚠️ No se pudo obtener información del video');
-      return { id: videoId, title: 'Video de YouTube', thumbnail: null, author: 'Desconocido' };
+      const response = await axios.head(url, {
+        headers: { 'User-Agent': getRandomUserAgent() },
+        timeout: 10000,
+        maxRedirects: 5,
+        validateStatus: status => status < 500
+      });
+      
+      const size = parseInt(response.headers['content-length'], 10);
+      if (size && !isNaN(size)) return size;
+      
+      const rangeResponse = await axios.get(url, {
+        headers: { 
+          'User-Agent': getRandomUserAgent(),
+          'Range': 'bytes=0-0'
+        },
+        timeout: 5000,
+        maxRedirects: 5,
+        validateStatus: status => status < 500
+      });
+      
+      const contentRange = rangeResponse.headers['content-range'];
+      if (contentRange) {
+        const totalSize = contentRange.split('/')[1];
+        if (totalSize && totalSize !== '*') {
+          const parsedSize = parseInt(totalSize, 10);
+          if (!isNaN(parsedSize)) return parsedSize;
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      if (i === retries - 1) return null;
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
     }
-  } catch (error) {
-    throw new Error('URL de YouTube inválida');
   }
-};
+  return null;
+}
 
 async function ytdl(url) {
   const headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    'Accept': '*/*',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Connection': 'keep-alive',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'cross-site',
-    'Referer': 'https://id.ytmp3.mobi/',
-    'Origin': 'https://id.ytmp3.mobi'
+    accept: '*/*',
+    'accept-language': 'en-US,en;q=0.9',
+    'user-agent': getRandomUserAgent(),
+    'sec-ch-ua': '"Chromium";v="132", "Not A(Brand";v="8"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'cross-site',
+    referer: 'https://id.ytmp3.mobi/',
+    'referrer-policy': 'strict-origin-when-cross-origin'
   };
 
   try {
-    console.log('🔄 Iniciando conversión...');
-    
-    const initRes = await fetch(`https://d.ymcdn.org/api/v1/init?p=y&23=1llum1n471&_=${Date.now()}`, { headers, timeout: TIMEOUT });
-    if (!initRes.ok) throw new Error(`Error en inicialización: ${initRes.status}`);
-    
+    const initRes = await fetch(`https://d.ymcdn.org/api/v1/init?p=y&23=1llum1n471&_=${Date.now()}`, { headers });
+    if (!initRes.ok) throw new Error('Fallo al inicializar la solicitud');
     const init = await initRes.json();
-    if (!init?.convertURL) throw new Error('No se pudo inicializar');
 
-    const videoId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/|.*watch\?v=))([^&?/\s]+)/)?.[1];
-    if (!videoId) throw new Error('No se pudo extraer el ID del video');
+    const videoId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/))([^&?/]+)/)?.[1];
+    if (!videoId) throw new Error('ID de video no encontrado');
 
-    console.log(`📹 ID: ${videoId}`);
-
-    const convertUrl = `${init.convertURL}&v=${videoId}&f=mp4&_=${Date.now()}`;
-    const convertRes = await fetch(convertUrl, { headers, timeout: TIMEOUT });
-    if (!convertRes.ok) throw new Error(`Error en conversión: ${convertRes.status}`);
-    
+    const convertRes = await fetch(`${init.convertURL}&v=${videoId}&f=mp4&_=${Date.now()}`, { headers });
+    if (!convertRes.ok) throw new Error('Fallo al convertir el video');
     const convert = await convertRes.json();
-    if (!convert?.downloadURL || !convert?.progressURL) throw new Error('No se obtuvieron URLs');
 
-    console.log('🔄 Esperando conversión...');
-
-    let info = null;
-    let attempts = 0;
-    const maxProgressAttempts = 10;
-
-    while (attempts < maxProgressAttempts) {
-      try {
-        const progressRes = await fetch(convert.progressURL, { headers, timeout: 30000 });
-        if (!progressRes.ok) throw new Error(`Error en progreso: ${progressRes.status}`);
-        
-        info = await progressRes.json();
-        console.log(`📊 Progreso: ${info?.progress || 'Desconocido'}`);
-        
-        if (info?.progress === 3) {
-          console.log('✅ Conversión completada');
-          break;
-        }
-        
-        attempts++;
-        await wait(2000);
-      } catch (progressError) {
-        console.warn(`⚠️ Error progreso (intento ${attempts + 1}):`, progressError.message);
-        attempts++;
-        await wait(3000);
-      }
+    let info;
+    for (let i = 0; i < 3; i++) {
+      const progressRes = await fetch(convert.progressURL, { headers });
+      if (!progressRes.ok) throw new Error('Fallo al obtener el progreso');
+      info = await progressRes.json();
+      if (info.progress === 3) break;
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    if (!convert.downloadURL) throw new Error('No se obtuvo URL de descarga');
-
-    return {
-      url: convert.downloadURL,
-      title: info?.title || 'Video de YouTube',
-      duration: info?.duration || null,
-      size: info?.size || null
-    };
-  } catch (error) {
-    console.error('❌ Error en ytdl:', error.message);
-    throw new Error(`Error de conversión: ${error.message}`);
+    if (!info || !convert.downloadURL) throw new Error('No se pudo obtener la URL de descarga');
+    return { url: convert.downloadURL, title: info.title || 'Video sin título' };
+  } catch (e) {
+    throw new Error(`Error en la descarga: ${e.message}`);
   }
 }
-
-const downloadVideoFile = async (url, filename = 'video.mp4') => {
-  try {
-    console.log(`📥 Descargando: ${url.substring(0, 50)}...`);
-    
-    const response = await axios({
-      method: 'GET',
-      url: url,
-      responseType: 'stream',
-      timeout: 120000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': '*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive'
-      },
-      maxRedirects: 10
-    });
-
-    const totalSize = parseInt(response.headers['content-length'] || '0', 10);
-    console.log(`📊 Tamaño: ${formatSize(totalSize)}`);
-
-    if (totalSize > MAX_FILE_SIZE) throw new Error(`Archivo muy grande: ${formatSize(totalSize)}`);
-
-    const chunks = [];
-    let downloadedSize = 0;
-    let lastProgress = 0;
-
-    return new Promise((resolve, reject) => {
-      response.data.on('data', (chunk) => {
-        chunks.push(chunk);
-        downloadedSize += chunk.length;
-        
-        if (totalSize > 0) {
-          const progress = Math.floor((downloadedSize / totalSize) * 100);
-          if (progress >= lastProgress + 10) {
-            console.log(`📊 Descarga: ${progress}% (${formatSize(downloadedSize)})`);
-            lastProgress = progress;
-          }
-        }
-      });
-
-      response.data.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        console.log(`✅ Descarga completada: ${formatSize(buffer.length)}`);
-        resolve(buffer);
-      });
-
-      response.data.on('error', (error) => {
-        console.error('❌ Error descarga:', error.message);
-        reject(error);
-      });
-
-      setTimeout(() => {
-        response.data.destroy();
-        reject(new Error('Timeout de descarga'));
-      }, 300000);
-    });
-  } catch (error) {
-    console.error('❌ Error en downloadVideoFile:', error.message);
-    throw error;
-  }
-};
 
 const checkRequestLimit = () => {
   const now = Date.now();
@@ -242,7 +133,6 @@ const checkRequestLimit = () => {
     setTimeout(() => {
       isCooldown = false;
       requestTimestamps.length = 0;
-      console.log('🔄 Cooldown terminado');
     }, COOLDOWN_MS);
     return false;
   }
@@ -250,129 +140,82 @@ const checkRequestLimit = () => {
 };
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-  cleanupTempFiles();
-
-  if (!text?.trim()) {
-    return conn.reply(m.chat, `🎥 *Uso*: ${usedPrefix}${command} <URL de YouTube>\n*Ejemplo*: ${usedPrefix}${command} https://youtube.com/watch?v=dQw4w9WgXcQ`, m);
+  if (!text) {
+    return conn.reply(m.chat, `👉 Uso: ${usedPrefix}${command} https://youtube.com/watch?v=iQEVguV71sI`, m);
   }
 
-  if (!isValidYouTubeUrl(text.trim())) {
+  if (!isValidYouTubeUrl(text)) {
     await m.react('🔴');
-    return conn.reply(m.chat, '🚫 URL de YouTube inválida.', m);
+    return m.reply('🚫 Enlace de YouTube inválido');
   }
 
   if (isCooldown || !checkRequestLimit()) {
     await m.react('🔴');
-    return conn.reply(m.chat, '⏳ Demasiadas solicitudes. Espera 2 minutos.', m);
+    return conn.reply(m.chat, '⏳ Demasiadas solicitudes rápidas. Por favor, espera 2 minutos.', m);
   }
-
   if (isProcessingHeavy) {
     await m.react('🔴');
-    return conn.reply(m.chat, '⏳ Procesando archivo pesado. Espera.', m);
+    return conn.reply(m.chat, '⏳ Espera, estoy procesando un archivo pesado.', m);
   }
 
-  const videoUrl = text.trim();
-  
+  await m.react('📀');
   try {
-    await m.react('🔍');
-    
-    console.log(`🔍 Obteniendo info: ${videoUrl}`);
-    const videoInfo = await getVideoInfo(videoUrl);
-    console.log(`📹 Video: ${videoInfo.title}`);
+    const { url, title } = await ytdl(text);
+    const size = await getSize(url);
 
-    const initialMessage = `🎬 *${videoInfo.title}*\n👤 *Canal*: ${videoInfo.author}\n🔄 *Estado*: Preparando...\n⏳ Procesando...`;
-    await conn.reply(m.chat, initialMessage, m);
-    await m.react('🔄');
-
-    let downloadData = null;
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      try {
-        console.log(`🔄 Intento ${attempt}/${MAX_ATTEMPTS}`);
-        downloadData = await ytdl(videoUrl);
-        if (downloadData?.url) {
-          console.log('✅ URL obtenida');
-          break;
+    if (!size) {
+      await m.react('⚠️');
+      const buffer = await (await fetch(url, { headers: { 'User-Agent': getRandomUserAgent() } })).buffer();
+      const caption = `*💌 ${title}*\n> ⚖️ Peso: Desconocido\n> 🌎 URL: ${text}`;
+      
+      await conn.sendFile(
+        m.chat,
+        buffer,
+        `${title}.mp4`,
+        caption,
+        m,
+        null,
+        {
+          mimetype: 'video/mp4',
+          asDocument: false,
+          filename: `${title}.mp4`
         }
-      } catch (error) {
-        console.error(`❌ Intento ${attempt} falló:`, error.message);
-        if (attempt === MAX_ATTEMPTS) throw new Error('No se pudo obtener URL de descarga.');
-        await wait(2000);
-      }
+      );
+      
+      await m.react('🟢');
+      return;
     }
 
-    if (!downloadData?.url) throw new Error('No se obtuvo URL válida.');
-
-    let fileSize = 0;
-    try {
-      const headResponse = await axios.head(downloadData.url, { timeout: 15000, maxRedirects: 5 });
-      fileSize = parseInt(headResponse.headers['content-length'] || '0', 10);
-      console.log(`📊 Tamaño: ${formatSize(fileSize)}`);
-
-      if (fileSize > MAX_FILE_SIZE) throw new Error(`Archivo muy grande (${formatSize(fileSize)}). Max: ${formatSize(MAX_FILE_SIZE)}`);
-
-      if (fileSize > HEAVY_FILE_THRESHOLD) {
-        isProcessingHeavy = true;
-        await conn.reply(m.chat, '📦 Archivo pesado. Tardará más...', m);
-      }
-    } catch (error) {
-      console.warn('⚠️ No se pudo verificar tamaño:', error.message);
+    if (size > HEAVY_FILE_THRESHOLD) {
+      isProcessingHeavy = true;
+      await conn.reply(m.chat, 'Archivo Pesado Puede Tardar Un Poco Por Favor Espera', m);
     }
 
-    await m.react('📥');
+    await m.react('✅️');
+    const caption = `*💌 ${title}*\n> ⚖️ Peso: ${formatSize(size)}\n> 🌎 URL: ${text}`;
+    const isSmallVideo = size < VIDEO_THRESHOLD;
 
-    console.log('📥 Descargando...');
-    const videoBuffer = await downloadVideoFile(downloadData.url, sanitizeFilename(downloadData.title));
-
-    if (!videoBuffer || videoBuffer.length === 0) throw new Error('Descarga vacía.');
-
-    const actualSize = videoBuffer.length;
-    const isSmallVideo = actualSize < VIDEO_THRESHOLD;
-
-    console.log(`📊 Descargado: ${formatSize(actualSize)}`);
-    console.log(`📤 Enviando como: ${isSmallVideo ? 'Video' : 'Documento'}`);
-
-    await m.react('📤');
-
-    const caption = `🎬 *${downloadData.title}*\n👤 *Canal*: ${videoInfo.author}\n⚖️ *Tamaño*: ${formatSize(actualSize)}\n🔗 *URL*: ${videoUrl}\n> © MediaHub™ Codigo Con Licencia Para Sasuke`;
-
+    const buffer = await (await fetch(url, { headers: { 'User-Agent': getRandomUserAgent() } })).buffer();
     await conn.sendFile(
       m.chat,
-      videoBuffer,
-      `${sanitizeFilename(downloadData.title)}.mp4`,
+      buffer,
+      `${title}.mp4`,
       caption,
       m,
       null,
       {
         mimetype: 'video/mp4',
         asDocument: !isSmallVideo,
-        filename: `${sanitizeFilename(downloadData.title)}.mp4`
+        filename: `${title}.mp4`
       }
     );
 
     await m.react('🟢');
     isProcessingHeavy = false;
-    console.log('🎉 Completado');
-
-  } catch (error) {
-    console.error('❌ Error:', error.message);
+  } catch (e) {
     await m.react('🔴');
+    await m.reply(`❌ Error: ${e.message || 'No se pudo procesar la solicitud'}`);
     isProcessingHeavy = false;
-
-    const getErrorMessage = (error) => {
-      const msg = error.message.toLowerCase();
-      if (msg.includes('network') || msg.includes('getaddrinfo')) return '🌐 Sin conexión.';
-      if (msg.includes('timeout')) return '⏱️ Timeout. Intenta de nuevo.';
-      if (msg.includes('403') || msg.includes('forbidden')) return '🚫 Acceso denegado.';
-      if (msg.includes('429') || msg.includes('rate limit')) return '🚦 Demasiadas solicitudes.';
-      if (msg.includes('404') || msg.includes('not found')) return '❓ Video no encontrado.';
-      if (msg.includes('demasiado grande') || msg.includes('muy grande')) return '📦 Archivo muy pesado.';
-      if (msg.includes('inválida')) return '🔗 URL inválida.';
-      if (msg.includes('privado') || msg.includes('private')) return '🔒 Video privado.';
-      if (msg.includes('edad') || msg.includes('age')) return '🔞 Restricción de edad.';
-      return `🚨 Error: ${error.message}`;
-    };
-
-    await m.reply(getErrorMessage(error));
   }
 };
 
