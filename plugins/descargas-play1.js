@@ -18,7 +18,7 @@ const handler = async (m, { conn, text, command }) => {
 
     const video = res.all[0];
     const caption = `
-╭─[*Sasuke YouTube*]─╮
+╭─[ *Sasuke YouTube* ]─╮
 │
 │ 📌 *Título:* ${video.title}
 │ 👤 *Autor:* ${video.author.name}
