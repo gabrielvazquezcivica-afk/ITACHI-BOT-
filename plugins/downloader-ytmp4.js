@@ -47,7 +47,6 @@ let handler = async (m, { conn, text }) => {
     return;
   }
 
-  // Mensaje inicial y reacción ⏱️
   const msg = await conn.reply(m.chat, `
 ╭───〔 *YTMP4* 〕───✦
 │ 🎬 Iniciando conversión de video...
@@ -60,10 +59,10 @@ let handler = async (m, { conn, text }) => {
     const info = await fetchDownloadUrl(text);
     if (!info) throw new Error("No se pudo obtener el enlace de descarga.");
 
-    // Reacción de éxito en la conversión
+   
     await conn.sendMessage(m.chat, { react: { text: '✅', key: msg.key } });
 
-    // Enviamos la caja descriptiva + video
+    
     const caption = `*💌 ${info.title}*\n> ⚖️ Peso: Desconocido\n> ⏱️ Duración: Desconocido\n> 🌎 URL: ${text}`;
 
     await conn.sendMessage(m.chat, {
