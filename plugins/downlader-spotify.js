@@ -39,7 +39,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 }
 }
 
-handler.help = ['.spotify <URL>']
+handler.help = ['spotify <URL>']
 handler.tags = ['music']
 handler.command = /^\.spotify$/i
 
