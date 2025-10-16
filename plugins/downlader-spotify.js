@@ -2,7 +2,7 @@
 import fetch from 'node-fetch'
 
 const handler = async (m, { conn, text, command, usedPrefix}) => {
-  const apikey = "sylphy-e321"
+  const apikey = "stellar-kxcJan1f"
 
   if (!text) {
     return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <nombre de canción o URL de Spotify>\n📍 *Ejemplo:* ${usedPrefix + command} lupit\n📍 *Ejemplo:* ${usedPrefix + command} https://open.spotify.com/track/...`)
@@ -11,7 +11,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
   // Si es una URL directa de Spotify
   if (text.includes("open.spotify.com/track")) {
     try {
-      const res = await fetch(`https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(text)}&apikey=sylphy-e321`)
+      const res = await fetch(`https://api.stellarwa.xyz/dow/spotify?url=${encodeURIComponent(text)}&apikey=stellar-kxcJan1f `)
       const json = await res.json()
 
       if (!json.status ||!json.data ||!json.data.dl_url) {
@@ -45,7 +45,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 
   // Si es texto, buscar y descargar automáticamente el primer resultado
   try {
-    const res = await fetch(`https://api.sylphy.xyz/search/spotify?q=${encodeURIComponent(text)}&apikey=sylphy-e321`)
+    const res = await fetch(`https://api.stellarwa.xyz/search/spotify?query=${encodeURIComponent(text)}&apikey=stellar-kxcJan1f `)
     const json = await res.json()
 
     if (!json.status ||!Array.isArray(json.data) || json.data.length === 0) {
@@ -53,7 +53,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 }
 
     const track = json.data[0] // Primer resultado
-    const downloadRes = await fetch(`https://api.sylphy.xyz/download/spotify?url=${encodeURIComponent(track.url)}&apikey=sylphy-e321`)
+    const downloadRes = await fetch(`https://api.stellarwa.xyz/dow/spotify?url=${encodeURIComponent(track.url)}&apikey=stellar-kxcJan1f`)
     const downloadJson = await downloadRes.json()
 
     if (!downloadJson.status ||!downloadJson.data ||!downloadJson.data.dl_url) {
