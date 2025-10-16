@@ -1,32 +1,64 @@
-let handler = async (m, { conn, usedPrefix, command, args, users, setting }) => {
-    try {
-        if (!args || !args[0]) {
-            return conn.reply(m.chat, `🪐 Ingresé El Link De Mediafire.\n*Ejemplo:* ${usedPrefix}${command} https://www.mediafire.com/file/c2fyjyrfckwgkum/ZETSv1%25282%2529.zip/file`, m);
-        }
 
-        if (!args[0].match(/(https:\/\/www.mediafire.com\/)/gi)) {
-            return conn.reply(m.chat, `Enlace inválido.`, m);
-        }
+import fetch from 'node-fetch'
 
-        m.react('🕒');
-        const json = await (await fetch(`https://api.sylphy.xyz/download/mediafire?url=${args[0]}&apikey=tesis-te-amo`)).json()
+const handler = async (m, { conn, text, command, usedPrefix}) => {
+  const apikey = "stellar-kxcJan1f"
 
-        if (!json.data.download) {
-            return conn.reply(m.chat, "No se pudo obtener la información del archivo.", m);
-        }
-        let info = `
-✦ \`Nombre :\` ${json.data.filename}
-✧ \`Peso :\` ${json.data.size}
-✦ \`Link :\` ${args[0]}
-✧ \`Mime :\` ${json.data.mimetype}
-`;
-m.reply(info)
-await conn.sendFile(m.chat, json.data.download, json.data.filename, "", m);
-    } catch (e) {
-        return conn.reply(m.chat, `Error: ${e.message}`, m);
-    }
-};
+  if (!text) {
+    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <nombre de archivo o URL de MediaFire>\n📍 *Ejemplo:* ${usedPrefix + command} DragonBall\n📍 *Ejemplo:* ${usedPrefix + command} https://www.mediafire.com/file/...`)
+}
 
-handler.command = handler.help = ['mediafire', 'mf', 'mfdl'];
-handler.tags = ["descargas"];;
-export default handler;
+  try {
+    let info
+
+    // Si es una URL directa de MediaFire
+    if (text.includes("mediafire.com/file")) {
+      const res = await fetch(`https://api.stellarwa.xyz/dow/mediafire?url=${encodeURIComponent(text)}&apikey=stellar-kxcJan1f`)
+      const json = await res.json()
+
+      if (!json.status ||!json.data ||!json.data.url) {
+        return m.reply("❌ No se pudo descargar el archivo.")
+}
+
+      info = json.data
+} else {
+      // Buscar archivo por nombre
+      const searchRes = await fetch(`https://api.stellarwa.xyz/search/mediafire?query=${encodeURIComponent(text)}&apikey=stellar-kxcJan1f`)
+      const searchJson = await searchRes.json()
+
+      if (!searchJson.status ||!Array.isArray(searchJson.data) || searchJson.data.length === 0) {
+        return m.reply("❌ No se encontraron archivos.")
+}
+
+      const file = searchJson.data[0]
+      const downloadRes = await fetch(`https://api.stellarwa.xyz/dow/mediafire?url=${encodeURIComponent(file.url)}&apikey=stellar-kxcJan1f`)
+      const downloadJson = await downloadRes.json()
+
+      if (!downloadJson.status ||!downloadJson.data ||!downloadJson.data.url) {
+        return m.reply("❌ No se pudo descargar el archivo.")
+}
+
+      info = downloadJson.data
+}
+
+    const caption = `
+╭─📁 *MediaFire Downloader* ─╮
+│ 📄 *Nombre:* ${info.filename}
+│ 📦 *Tamaño:* ${info.filesize}
+│ 📥 *Descargando archivo...*
+╰────────────────────────────╯
+`
+
+    await conn.sendMessage(m.chat, { caption, document: { url: info.url, fileName: info.filename}, mimetype: info.mimetype || 'application/octet-stream'}, { quoted: m})
+
+} catch (e) {
+    console.error("Error:", e)
+    m.reply("⚠️ Ocurrió un error al procesar tu solicitud.")
+}
+}
+
+handler.help = ['mediafire <texto o URL>']
+handler.tags = ['downloader']
+handler.command = /^\.mediafire$/i
+
+export default handler
