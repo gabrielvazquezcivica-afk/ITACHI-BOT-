@@ -1,19 +1,19 @@
-// Codigo Echo Por MediaHub..No Editar Ni Copiar Para Sus Bots Bugs
+// Codigo Echo Por MediaHub..No Editar Marca ✔️*
 import axios from 'axios';
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const fetchDownloadUrl = async (videoUrl) => {
-  const api = `https://apis-mediahub.vercel.app/api/ytmp3?url=${encodeURIComponent(videoUrl)}`;
+  const api = `https://apis-starlights-team.koyeb.app/starlight/youtube-mp3?url=${encodeURIComponent(videoUrl)}`;
   try {
     const { data } = await axios.get(api, { timeout: 15000 });
-    if (data?.status !== 200 || !data?.data?.download) return null;
+    if (!data?.dl_url) return null;
 
     return {
-      title: data.data.title,
-      duration: data.data.duration,
-      thumbnail: data.data.thumbnail,
-      url: data.data.download
+      title: data.title || "Sin título",
+      duration: data.quality || "MP3",
+      thumbnail: data.thumbnail,
+      url: data.dl_url
     };
   } catch (error) {
     console.error(`❌ Error en la API: ${error.message}`);
@@ -85,7 +85,7 @@ let handler = async (m, { conn, text }) => {
     await conn.reply(m.chat, `
 ╭───〔 *Descargando* 〕──✦
 │ 📀 *Título:* ${info.title}
-│ ⏱️ *Duración:* ${info.duration}
+│ ⏱️ *Calidad:* ${info.duration}
 │ 📦 *Formato:* MP3 (audio)
 │ 🔗 *Fuente:* YouTube
 │ ⬇️ Enviando archivo...
@@ -97,10 +97,10 @@ let handler = async (m, { conn, text }) => {
     console.error("❌ Error general:", error);
     await conn.sendMessage(m.chat, { react: { text: '🔴', key: msg.key } });
     await conn.reply(m.chat, `
-╭───〔 *Error al procesar* 〕───✦
+╭───[*Error al procesar*]─✦
 │ ⚠️ ${error.message || "Ocurrió un error desconocido."}
 │ 🔁 Intenta nuevamente más tarde.
-╰─────────────────────✦
+╰────────────────✦
 `, m);
   }
 };
