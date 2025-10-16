@@ -15,7 +15,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 
     if (isSpotifyUrl) {
       // 🔽 Descargar directamente desde URL
-      const res = await fetch(`https://api.stellarwa.xyz/dow/spotify?url=${encodeURIComponent(text)}&apikey=${apikey}`)
+      const res = await fetch(`https://api.stellarwa.xyz/dow/spotify?url=${encodeURIComponent(text)}&apikey=stellar-kxcJan1f `)
       const json = await res.json()
 
       if (!json.status ||!json.data ||!json.data.dl_url) {
@@ -25,7 +25,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
       info = json.data
 } else {
       // 🔍 Buscar canción por texto
-      const searchRes = await fetch(`https://api.stellarwa.xyz/search/spotify?query=${encodeURIComponent(text)}&apikey=${apikey}`)
+      const searchRes = await fetch(`https://api.stellarwa.xyz/search/spotify?query=${encodeURIComponent(text)}&apikey=stellar-kxcJan1f `)
       const searchJson = await searchRes.json()
 
       if (!searchJson.status ||!Array.isArray(searchJson.data) || searchJson.data.length === 0) {
@@ -33,7 +33,7 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 }
 
       const track = searchJson.data[0]
-      const downloadRes = await fetch(`https://api.stellarwa.xyz/dow/spotify?url=${encodeURIComponent(track.url)}&apikey=${apikey}`)
+      const downloadRes = await fetch(`https://api.stellarwa.xyz/dow/spotify?url=${encodeURIComponent(track.url)}&apikey=stellar-kxcJan1f`)
       const downloadJson = await downloadRes.json()
 
       if (!downloadJson.status ||!downloadJson.data ||!downloadJson.data.dl_url) {
