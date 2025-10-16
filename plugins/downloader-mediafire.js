@@ -4,43 +4,19 @@ import fetch from 'node-fetch'
 const handler = async (m, { conn, text, command, usedPrefix}) => {
   const apikey = "stellar-kxcJan1f"
 
-  if (!text) {
-    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <nombre de archivo o URL de MediaFire>\n📍 *Ejemplo:* ${usedPrefix + command} DragonBall\n📍 *Ejemplo:* ${usedPrefix + command} https://www.mediafire.com/file/...`)
+  if (!text ||!text.includes("mediafire.com/file")) {
+    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <URL de MediaFire>\n📍 *Ejemplo:* ${usedPrefix + command} https://www.mediafire.com/file/...`)
 }
 
   try {
-    let info
+    const res = await fetch(`https://api.stellarwa.xyz/dow/mediafire?url=${encodeURIComponent(text)}&apikey=${apikey}`)
+    const json = await res.json()
 
-    // 🔗 Si es una URL directa de MediaFire
-    if (text.includes("mediafire.com/file")) {
-      const res = await fetch(`https://api.stellarwa.xyz/dow/mediafire?url=${encodeURIComponent(text)}&apikey=${apikey}`)
-      const json = await res.json()
-
-      if (json.status!== true ||!json.data ||!json.data.url) {
-        return m.reply("❌ No se pudo descargar el archivo desde la URL.")
+    if (!json.status ||!json.data ||!json.data.url) {
+      return m.reply("❌ No se pudo obtener el archivo. Verifica que la URL sea válida.")
 }
 
-      info = json.data
-} else {
-      // 🔍 Buscar archivo por nombre
-      const searchRes = await fetch(`https://api.stellarwa.xyz/search/mediafire?query=${encodeURIComponent(text)}&apikey=${apikey}`)
-      const searchJson = await searchRes.json()
-
-      if (searchJson.status!== true ||!Array.isArray(searchJson.data) || searchJson.data.length === 0) {
-        return m.reply("❌ No se encontraron archivos con ese nombre.")
-}
-
-      const file = searchJson.data[0]
-      const downloadRes = await fetch(`https://api.stellarwa.xyz/dow/mediafire?url=${encodeURIComponent(file.url)}&apikey=${apikey}`)
-      const downloadJson = await downloadRes.json()
-
-      if (downloadJson.status!== true ||!downloadJson.data ||!downloadJson.data.url) {
-        return m.reply("❌ No se pudo descargar el archivo encontrado.")
-}
-
-      info = downloadJson.data
-}
-
+    const info = json.data
     const caption = `
 ╭─📁 *MediaFire Downloader* ─╮
 │ 📄 *Nombre:* ${info.filename}
@@ -57,12 +33,12 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 
 } catch (e) {
     console.error("Error:", e)
-    m.reply("⚠️ Ocurrió un error al procesar tu solicitud. Verifica que la URL o el nombre sean válidos.")
+    m.reply("⚠️ Error al procesar la URL. Puede que la API esté caída o la URL no sea compatible.")
 }
 }
 
-handler.help = ['mediafire <texto o URL>']
+handler.help = ['mediafire <URL>']
 handler.tags = ['downloader']
-handler.command = ['media']
+handler.command = /^mediafire$/i
 
 export default handler
