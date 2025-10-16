@@ -41,6 +41,6 @@ const handler = async (m, { conn, text, command, usedPrefix}) => {
 
 handler.help = ['spotify <URL>']
 handler.tags = ['music']
-handler.command = /^\.spotify$/i
+handler.command = /^\spotify$/i
 
 export default handler
