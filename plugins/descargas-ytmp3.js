@@ -1,112 +1,50 @@
-// Codigo Echo Por MediaHub..No Editar Marca ✔️*
-import axios from 'axios';
 
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+import fetch from 'node-fetch'
 
-const fetchDownloadUrl = async (videoUrl) => {
-  const api = `https://apis-starlights-team.koyeb.app/starlight/youtube-mp3?url=${encodeURIComponent(videoUrl)}`;
-  try {
-    const { data } = await axios.get(api, { timeout: 15000 });
-    if (!data?.dl_url) return null;
+const handler = async (m, { conn, text, command, usedPrefix}) => {
+  const apikey = "sylphy-e321"
 
-    return {
-      title: data.title || "Sin título",
-      duration: data.quality || "MP3",
-      thumbnail: data.thumbnail,
-      url: data.dl_url
-    };
-  } catch (error) {
-    console.error(`❌ Error en la API: ${error.message}`);
-    return null;
-  }
-};
+  if (!text) {
+    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <URL de YouTube>\n📍 *Ejemplo:* ${usedPrefix + command} https://youtube.com/watch?v=abc123`)
+}
 
-const sendAudioWithRetry = async (conn, chat, audioUrl, title, thumbnail, maxRetries = 2) => {
-  let attempt = 0;
-  let thumbBuffer;
+  if (!text.includes("youtube.com")) {
+    return m.reply("❌ Por favor, proporciona una URL válida de YouTube.")
+}
 
   try {
-    const response = await axios.get(thumbnail, { responseType: 'arraybuffer' });
-    thumbBuffer = Buffer.from(response.data, 'binary');
-  } catch {
-    console.warn("⚠️ Miniatura no disponible.");
-  }
+    const res = await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${encodeURIComponent(text)}&apikey=sylphy-e321`)
+    const json = await res.json()
 
-  while (attempt < maxRetries) {
-    try {
-      await conn.sendMessage(chat, {
-        audio: { url: audioUrl },
-        mimetype: 'audio/mpeg',
-        contextInfo: {
-          externalAdReply: {
-            title: title,
-            body: "Tu descarga está lista 🎧",
-            thumbnail: thumbBuffer,
-            mediaType: 1,
-            renderLargerThumbnail: false,
-            sourceUrl: 'https://youtube.com'
-          }
-        }
-      });
-      return;
-    } catch (error) {
-      console.error(`❌ Error al enviar audio (intento ${attempt + 1}): ${error.message}`);
-      if (attempt < maxRetries - 1) await wait(10000);
-    }
-    attempt++;
-  }
-};
+    if (!json.status ||!json.data ||!json.data.dl_url) {
+      return m.reply("❌ No se pudo descargar el audio.")
+}
 
-let handler = async (m, { conn, text }) => {
-  if (!text?.trim() || (!text.includes('youtube.com') && !text.includes('youtu.be'))) {
-    await conn.reply(m.chat, `
-╭───〔 *YTMP3* 〕───✦
-│ ⚠️ Debes ingresar un enlace válido de YouTube.
-│ Ejemplo: *.ytmp3 https://youtu.be/abc123*
-╰───────────────✦
-`, m);
-    return;
-  }
+    const info = json.data
+    const caption = `
+╭─🎶 *YouTube MP3 Downloader* 🎶─╮
+│
+│ 🎵 *Título:* ${info.title}
+│ ⏱️ *Duración:* ${info.duration}
+│ 📥 *Descargando audio...*
+╰────────────────────────────╯
+`
 
-  const msg = await conn.reply(m.chat, `
-╭───〔 *YTMP3* 〕───✦
-│ 🔄 Procesando tu enlace...
-│ 🎧 Espera mientras preparo el audio.
-╰──────────────────✦
-`, m);
-  await conn.sendMessage(m.chat, { react: { text: '🎶', key: msg.key } });
+    await conn.sendMessage(m.chat, { image: { url: info.thumbnail}, caption}, { quoted: m})
+    await conn.sendMessage(m.chat, {
+      audio: { url: info.dl_url},
+      mimetype: 'audio/mp4',
+      fileName: `${info.title}.mp3`
+}, { quoted: m})
 
-  try {
-    const info = await fetchDownloadUrl(text);
-    if (!info) throw new Error("No se pudo obtener el enlace de descarga.");
+} catch (e) {
+    console.error(e)
+    m.reply("⚠️ Error al descargar el audio.")
+}
+}
 
-    await conn.sendMessage(m.chat, { react: { text: '🟢', key: msg.key } });
+handler.help = ['ytmp3 <url>']
+handler.tags = ['music']
+handler.command = /^ytmp3$/i
 
-    await conn.reply(m.chat, `
-╭───〔 *Descargando* 〕──✦
-│ 📀 *Título:* ${info.title}
-│ ⏱️ *Calidad:* ${info.duration}
-│ 📦 *Formato:* MP3 (audio)
-│ 🔗 *Fuente:* YouTube
-│ ⬇️ Enviando archivo...
-╰──────────────────✦
-`, m);
-
-    await sendAudioWithRetry(conn, m.chat, info.url, info.title, info.thumbnail);
-  } catch (error) {
-    console.error("❌ Error general:", error);
-    await conn.sendMessage(m.chat, { react: { text: '🔴', key: msg.key } });
-    await conn.reply(m.chat, `
-╭───[*Error al procesar*]─✦
-│ ⚠️ ${error.message || "Ocurrió un error desconocido."}
-│ 🔁 Intenta nuevamente más tarde.
-╰────────────────✦
-`, m);
-  }
-};
-
-handler.help = ['ytmp3 <url>'];
-handler.tags = ['descargas'];
-handler.command = /^ytmp3$/i;
-
-export default handler;
+export default handler
