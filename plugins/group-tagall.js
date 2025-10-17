@@ -41,7 +41,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) =
 }
   messageText += `└───────⭓\n\n𝘚𝘶𝘱𝘦𝘳 𝘉𝘰𝘵 𝘞𝘩𝘢𝘵𝘴𝘈𝘱𝘱 🚩`;
 
-  const imageUrl = 'https://cdn-sunflareteam.vercel.app/images/fa68a035ca.jpg';
+  const imageUrl = 'https://files.catbox.moe/n80w1o.jpg';
   const audioUrl = 'https://cdn.russellxz.click/3fd9f7de.mp3';
 
   const fkontak = {
