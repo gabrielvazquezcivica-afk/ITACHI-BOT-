@@ -93,21 +93,21 @@ JBOptions.fromCommand = true
 JadiBot(JBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
-handler.help = ['serbot','code2']
+handler.help = ['serbot','code']
 handler.tags = ['serbot']
-handler.command = ['serbot','code2']
+handler.command = ['serbot','code']
 export default handler 
 
 export async function JadiBot(options) {
 let { pathJadiBot, m, conn, args, usedPrefix, command } = options
-if (command === 'code2') {
+if (command === 'code') {
 command = 'qr'; 
 args.unshift('code')}
-const mcode = args[0] && /(--code2|code)/.test(args[0].trim()) ? true : args[1] && /(--code2|code2)/.test(args[1].trim()) ? true : false
+const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
 let txtCode, codeBot, txtQR
 if (mcode) {
-args[0] = args[0].replace(/^--code2$|^code2$/, "").trim()
-if (args[1]) args[1] = args[1].replace(/^--code2$|^code2$/, "").trim()
+args[0] = args[0].replace(/^--code$|^code$/, "").trim()
+if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
 const pathCreds = path.join(pathJadiBot, "creds.json")
@@ -128,22 +128,37 @@ let { version, isLatest } = await fetchLatestBaileysVersion()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
 const { state, saveState, saveCreds } = await useMultiFileAuthState(pathJadiBot)
-const sockLogger = pino({ level: 'silent' });
 
-let sock = makeWASocket({
-    version,
-    logger: sockLogger,
-    printQRInTerminal: false,
-    auth: {
-      creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, sockLogger),
-    },
-    msgRetryCache,
-    msgRetry: () => {},
-    browser: ["Ubuntu", "Chrome", "110.0.5585.95"],
-    syncFullHistory: true,
-    getMessage: async (key) => ({ conversation: "Subbot" })
-  });
+const connectionOptions = {
+logger: pino({ level: "fatal" }),
+printQRInTerminal: false,
+auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
+msgRetry,
+msgRetryCache,
+browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Bot(Sub Bot)', 'Chrome','2.0.0'],
+version: version,
+generateHighQualityLinkPreview: true
+};
+
+/*const connectionOptions = {
+printQRInTerminal: false,
+logger: pino({ level: 'silent' }),
+auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
+msgRetry,
+msgRetryCache,
+version: [2, 3000, 1015901307],
+syncFullHistory: true,
+browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Bot (Sub Bot)', 'Chrome','2.0.0'],
+defaultQueryTimeoutMs: undefined,
+getMessage: async (key) => {
+if (store) {
+//const msg = store.loadMessage(key.remoteJid, key.id)
+//return msg.message && undefined
+} return {
+conversation: 'Bot',
+}}}*/
+
+let sock = makeWASocket(connectionOptions)
 sock.isInit = false
 let isInit = true
 
