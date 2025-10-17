@@ -94,7 +94,7 @@ if (methodCode && !conn.authState.creds.registered) {
     setTimeout(async () => {
         let codeBot = await conn.requestPairingCode(cleanedNumber);
         codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
-         parent.sendFile(m.chat, 'https://i.ibb.co/SKKdvRb/code.jpg', 'qrcode.png', ` : ${codeBot}`, m)
+         parent.sendFile(m.chat, 'https://i.ibb.co/SKKdvRb/code.jpg', 'qrcode.png', `${codeBot}`, m)
         rl.close();
     }, 3000);
 }
