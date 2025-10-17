@@ -128,20 +128,22 @@ let { version, isLatest } = await fetchLatestBaileysVersion()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
 const { state, saveState, saveCreds } = await useMultiFileAuthState(pathJadiBot)
+const sockLogger = pino({ level: 'silent' });
 
-const connectionOptions = {
-printQRInTerminal: false,
-logger: pino({ level: 'silent' }),
-auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
-msgRetry,
-msgRetryCache,
-version: [2, 3000, 1025190524],
-syncFullHistory: true,
-browser: ['Ubuntu', 'Opera', '110.0.5585.95'],
-defaultQueryTimeoutMs: undefined
-}
-
-let sock = makeWASocket(connectionOptions)
+let sock = makeWASocket({
+    version,
+    logger: sockLogger,
+    printQRInTerminal: false,
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, sockLogger),
+    },
+    msgRetryCache,
+    msgRetry: () => {},
+    browser: ["Ubuntu", "Chrome", "110.0.5585.95"],
+    syncFullHistory: true,
+    getMessage: async (key) => ({ conversation: "Subbot" })
+  });
 sock.isInit = false
 let isInit = true
 
