@@ -19,6 +19,13 @@ import * as ws from 'ws';
 const { CONNECTING } = ws
 import { Boom } from '@hapi/boom'
 import { makeWASocket } from '../lib/simple.js';
+import { startSub, checkSubBots } from '../lib/resetsb.js';
+
+  await startSub();
+
+  setInterval(() => {
+    checkSubBots();
+  }, 30000);
 
 if (global.conns instanceof Array) console.log()
 else global.conns = []
