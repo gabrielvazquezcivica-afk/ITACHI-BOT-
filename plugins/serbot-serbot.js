@@ -93,23 +93,45 @@ JBOptions.fromCommand = true
 JadiBot(JBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
-handler.help = ['serbot','code']
+handler.help = ['serbot','qr','code'] // Añadido 'qr' y 'code' a la ayuda
 handler.tags = ['serbot']
-handler.command = ['serbot','code']
+// Se asegura que 'code' se maneje correctamente, funcionando como un alias de 'serbot code'
+handler.command = ['serbot','qr','code'] 
 export default handler 
 
 export async function JadiBot(options) {
 let { pathJadiBot, m, conn, args, usedPrefix, command } = options
-if (command === 'code') {
-command = 'qr'; 
-args.unshift('code')}
-const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
-let txtCode, codeBot, txtQR
-if (mcode) {
-args[0] = args[0].replace(/^--code$|^code$/, "").trim()
-if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
-if (args[0] == "") args[0] = undefined
+
+// *** ARREGLO PARA EL COMANDO '.code' ***
+let mcode = false;
+let isCodeAlias = command === 'code'; // Verifica si se usó el alias '.code'
+
+if (isCodeAlias || (args[0] && /(--code|code)/.test(args[0].trim())) || (args[1] && /(--code|code)/.test(args[1].trim()))) {
+    mcode = true;
+    
+    // Si se usó .code, lo tratamos como 'qr code' internamente.
+    if (isCodeAlias) {
+        command = 'qr';
+        // Si no hay argumentos, le añadimos 'code'
+        if (!args.some(arg => /(--code|code)/.test(arg.trim()))) {
+             args.unshift('code');
+        }
+    }
+
+    // Limpia los argumentos si contienen '--code' o 'code'
+    if (args[0] && /(--code|code)/.test(args[0].trim())) {
+        args[0] = args[0].replace(/^--code$|^code$/, "").trim();
+    }
+    if (args[1] && /(--code|code)/.test(args[1].trim())) {
+        args[1] = args[1].replace(/^--code$|^code$/, "").trim();
+    }
+    // Si el argumento 0 queda vacío, lo establecemos como undefined
+    if (args[0] == "") args[0] = undefined;
 }
+// *** FIN DEL ARREGLO ***
+
+
+let txtCode, codeBot, txtQR
 const pathCreds = path.join(pathJadiBot, "creds.json")
 if (!fs.existsSync(pathJadiBot)){
 fs.mkdirSync(pathJadiBot, { recursive: true })}
@@ -139,24 +161,6 @@ browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Bot(Sub Bot)', 'Chrom
 version: version,
 generateHighQualityLinkPreview: true
 };
-
-/*const connectionOptions = {
-printQRInTerminal: false,
-logger: pino({ level: 'silent' }),
-auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
-msgRetry,
-msgRetryCache,
-version: [2, 3000, 1015901307],
-syncFullHistory: true,
-browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Bot (Sub Bot)', 'Chrome','2.0.0'],
-defaultQueryTimeoutMs: undefined,
-getMessage: async (key) => {
-if (store) {
-//const msg = store.loadMessage(key.remoteJid, key.id)
-//return msg.message && undefined
-} return {
-conversation: 'Bot',
-}}}*/
 
 let sock = makeWASocket(connectionOptions)
 sock.isInit = false
