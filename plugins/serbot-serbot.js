@@ -93,21 +93,21 @@ JBOptions.fromCommand = true
 JadiBot(JBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
-handler.help = ['serbot','code']
+handler.help = ['serbot','code2']
 handler.tags = ['serbot']
-handler.command = ['serbot','code']
+handler.command = ['serbot','code2']
 export default handler 
 
 export async function JadiBot(options) {
 let { pathJadiBot, m, conn, args, usedPrefix, command } = options
-if (command === 'code') {
+if (command === 'code2') {
 command = 'qr'; 
 args.unshift('code')}
-const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
+const mcode = args[0] && /(--code2|code)/.test(args[0].trim()) ? true : args[1] && /(--code2|code2)/.test(args[1].trim()) ? true : false
 let txtCode, codeBot, txtQR
 if (mcode) {
-args[0] = args[0].replace(/^--code$|^code$/, "").trim()
-if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
+args[0] = args[0].replace(/^--code2$|^code2$/, "").trim()
+if (args[1]) args[1] = args[1].replace(/^--code2$|^code2$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
 const pathCreds = path.join(pathJadiBot, "creds.json")
