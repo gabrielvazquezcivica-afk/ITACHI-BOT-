@@ -56,7 +56,7 @@ como *Sub-Bot Temporal* en esta sesión.
 ⚠ Si ya estás conectado en otra sesión,
 se recomienda cerrarla para evitar errores o bloqueos.
 `;
-let imagenUrl = 'https://cdn-sunflareteam.vercel.app/images/fe2072569a.jpg';
+let imagenUrl = 'https://files.catbox.moe/n80w1o.jpg';
 
 let emoji2 = '🍁';
 
