@@ -93,10 +93,10 @@ JBOptions.fromCommand = true
 JadiBot(JBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
-handler.help = ['serbot','qr','code'] // Añadido 'qr' y 'code' a la ayuda
+handler.help = ['serbot','qrcode','code'] // Añadido 'qr' y 'code' a la ayuda
 handler.tags = ['serbot']
 // Se asegura que 'code' se maneje correctamente, funcionando como un alias de 'serbot code'
-handler.command = ['serbot','qr','code'] 
+handler.command = ['serbot','qrcode','code'] 
 export default handler 
 
 export async function JadiBot(options) {
@@ -111,7 +111,7 @@ if (isCodeAlias || (args[0] && /(--code|code)/.test(args[0].trim())) || (args[1]
     
     // Si se usó .code, lo tratamos como 'qr code' internamente.
     if (isCodeAlias) {
-        command = 'qr';
+        command = 'qrcode';
         // Si no hay argumentos, le añadimos 'code'
         if (!args.some(arg => /(--code|code)/.test(arg.trim()))) {
              args.unshift('code');
