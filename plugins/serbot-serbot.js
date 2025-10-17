@@ -140,13 +140,13 @@ version: version,
 generateHighQualityLinkPreview: true
 };
 
-const connectionOptions = {
+/*const connectionOptions = {
 printQRInTerminal: false,
 logger: pino({ level: 'silent' }),
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
 msgRetry,
 msgRetryCache,
-version: [2, 3000, 1025190524],
+version: [2, 3000, 1015901307],
 syncFullHistory: true,
 browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Bot (Sub Bot)', 'Chrome','2.0.0'],
 defaultQueryTimeoutMs: undefined,
