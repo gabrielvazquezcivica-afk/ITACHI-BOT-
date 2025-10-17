@@ -140,7 +140,7 @@ version: version,
 generateHighQualityLinkPreview: true
 };
 
-*const connectionOptions = {
+const connectionOptions = {
 printQRInTerminal: false,
 logger: pino({ level: 'silent' }),
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
