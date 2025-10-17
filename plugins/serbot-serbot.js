@@ -93,60 +93,30 @@ JBOptions.fromCommand = true
 JadiBot(JBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
-handler.help = ['serbot','qrcode','code'] // Asegura que los comandos están listados
+handler.help = ['serbot','code']
 handler.tags = ['serbot']
-handler.command = ['serbot','qrcode','code'] 
+handler.command = ['serbot','code']
 export default handler 
 
 export async function JadiBot(options) {
 let { pathJadiBot, m, conn, args, usedPrefix, command } = options
-
-// *** ARREGLO PARA FORZAR EL CÓDIGO DE 8 DÍGITOS CON 'qrcode' o 'code' ***
-let mcode = false;
-let isCodeCommand = command === 'qrcode' || command === 'code';
-
-if (isCodeCommand) {
-    // Si se usa 'qrcode' o 'code', forzamos el modo código de 8 dígitos.
-    mcode = true; 
-    
-    // Si se pasa un argumento (una sesión), lo mantenemos.
-    // Si el argumento es 'code' o '--code', lo eliminamos para evitar problemas.
-    if (args[0] && /(--code|code)/.test(args[0].trim())) {
-        args.shift(); // Elimina el primer argumento si es 'code' o '--code'
-    } else if (args[1] && /(--code|code)/.test(args[1].trim())) {
-        args.splice(1, 1); // Elimina el segundo argumento si es 'code' o '--code'
-    }
-    if (args[0] == "") args[0] = undefined;
-    
-    // Si el comando original era 'code', lo normalizamos a 'qrcode' para el mensaje de error si no se pasa la sesión.
-    if (command === 'code') {
-        command = 'qrcode';
-    }
-} else {
-    // Lógica original para el comando 'serbot' que puede llevar 'code' como argumento
-    if ((args[0] && /(--code|code)/.test(args[0].trim())) || (args[1] && /(--code|code)/.test(args[1].trim()))) {
-        mcode = true;
-        
-        if (args[0] && /(--code|code)/.test(args[0].trim())) {
-            args[0] = args[0].replace(/^--code$|^code$/, "").trim();
-        }
-        if (args[1] && /(--code|code)/.test(args[1].trim())) {
-            args[1] = args[1].replace(/^--code$|^code$/, "").trim();
-        }
-        if (args[0] == "") args[0] = undefined;
-    }
-}
-// *** FIN DEL ARREGLO ***
-
-
+const mcode = command === 'code' ? true : args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false // Se agregó el chequeo del comando aquí.
+if (command === 'code') {
+command = 'qr'; 
+args.unshift('code')}
 let txtCode, codeBot, txtQR
+if (mcode) {
+args[0] = args[0].replace(/^--code$|^code$/, "").trim()
+if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
+if (args[0] == "") args[0] = undefined
+}
 const pathCreds = path.join(pathJadiBot, "creds.json")
 if (!fs.existsSync(pathJadiBot)){
 fs.mkdirSync(pathJadiBot, { recursive: true })}
 try {
 args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
 } catch {
-conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} [sesión]`, m)
+conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} code`, m)
 return
 }
 
@@ -165,11 +135,28 @@ printQRInTerminal: false,
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
 msgRetry,
 msgRetryCache,
-// Aquí se usa el mcode corregido para determinar el navegador
 browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Bot(Sub Bot)', 'Chrome','2.0.0'],
 version: version,
 generateHighQualityLinkPreview: true
 };
+
+/*const connectionOptions = {
+printQRInTerminal: false,
+logger: pino({ level: 'silent' }),
+auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
+msgRetry,
+msgRetryCache,
+version: [2, 3000, 1015901307],
+syncFullHistory: true,
+browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Bot (Sub Bot)', 'Chrome','2.0.0'],
+defaultQueryTimeoutMs: undefined,
+getMessage: async (key) => {
+if (store) {
+//const msg = store.loadMessage(key.remoteJid, key.id)
+//return msg.message && undefined
+} return {
+conversation: 'Bot',
+}}}*/
 
 let sock = makeWASocket(connectionOptions)
 sock.isInit = false
@@ -178,31 +165,6 @@ let isInit = true
 async function connectionUpdate(update) {
 const { connection, lastDisconnect, isNewLogin, qr } = update
 if (isNewLogin) sock.isInit = false
-
-// Si mcode es true, siempre intenta generar y enviar el código de 8 dígitos.
-if (qr && mcode) { 
-  let secret = await sock.requestPairingCode((m.sender.split`@`[0]))
-secret = secret.match(/.{1,4}/g)?.join("-")
-
-txtCode = await conn.sendMessage(m.chat, {
-    image: { url: imagenUrl },
-    caption: rtx2,
-    quoted: m,
-});
-codeBot = await conn.reply(m.chat, `${secret}`, m);
-
-console.log(secret)
-
-if (txtCode && txtCode.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 30000)
-}
-if (codeBot && codeBot.key) {
-setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 30000)
-}
-return
-} 
-
-// Si no es mcode (es un comando normal como 'serbot' o 'qrcode' sin argumento para forzar código), muestra el QR
 if (qr && !mcode) {
 if (m?.chat) {
 txtQR = await conn.sendMessage(m.chat, {
@@ -217,7 +179,27 @@ setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 30000)
 }
 return
 } 
-
+if (qr && mcode) {
+  let secret = await sock.requestPairingCode((m.sender.split`@`[0]))
+secret = secret.match(/.{1,4}/g)?.join("-")
+//if (m.isWABusiness) {
+txtCode = await conn.sendMessage(m.chat, {
+    image: { url: imagenUrl },
+    caption: rtx2,
+    quoted: m,
+});
+codeBot = await conn.reply(m.chat, `${secret}`, m);
+//} else {
+//txtCode = await conn.sendButton(m.chat, rtx2.trim(), wm, null, [], secret, null, m) 
+//}
+console.log(secret)
+}
+if (txtCode && txtCode.key) {
+setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 30000)
+}
+if (codeBot && codeBot.key) {
+setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 30000)
+}
 const endSesion = async (loaded) => {
 if (!loaded) {
 try {
